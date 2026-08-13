@@ -167,6 +167,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
     <div class="tab" data-v="search">B&uacute;squedas</div>
     <div class="tab" data-v="pipeline">Pipeline</div>
     <div class="tab" data-v="hoy">Hoy</div>
+    <div class="tab" data-v="apps">Aplicaciones</div>
     <div class="tab" data-v="meet">Entrevistas</div>
     <div class="tab" data-v="ana">Análisis</div>
     <div class="tab" data-v="data">Datos</div>
@@ -193,6 +194,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
   <div class="view" id="view-search"></div>
   <div class="view" id="view-pipeline"><div class="kb" id="kb"></div></div>
   <div class="view" id="view-hoy"></div>
+  <div class="view" id="view-apps"></div>
   <div class="view" id="view-meet" ></div>
   <div class="view" id="view-ana"></div>
   <div class="view" id="view-data"></div>
@@ -205,7 +207,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 const SB_URL='https://jbysfyrgesrsgemqervj.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieXNmeXJnZXNyc2dlbXFlcnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjA1MTcsImV4cCI6MjA5ODkzNjUxN30._hz_CWETq8rZ6ggxLsACJ5uY-lAsruYTwqrl4D2d-IA';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-let DATA=[]; let EDITS={}; let byId={}; let ME=''; let SEARCHES=[]; let curSearchId=null; let DRAGID=null; let DRAGJUST=false;
+let DATA=[]; let EDITS={}; let byId={}; let ME=''; let SEARCHES=[]; let curSearchId=null; let DRAGID=null; let DRAGJUST=false; let APPS=[]; const SEENIV=new Set(); let RTDEB=null;
 const STAGES=['Nuevo','Contactar','Screen de voz','Entrevista','Verificado','Oferta','Contratado','Descartado'];
 const CHK=[['eng','Inglés verificado en llamada'],['loc','Ubicación confirmada'],['ref','Referencias contactadas'],['avail','Disponibilidad confirmada'],['overlap','Empleos activos aclarados']];
 const ENGRANK={'Native':5,'C2':5,'C1 / Advanced':4,'B2 / Intermediate':3,'B1':2,'Basic':1,'Unknown':0};
@@ -296,6 +298,9 @@ function renderBench(){
   document.getElementById('grid').innerHTML=list.map(d=>{
     const e=edv(d.id); const st=stageOf(d);
     const ve=e.verified_english?`<span class="tag eng">✓ ${esc(e.verified_english)}</span>`:'';
+    const dst=(!['Nuevo','Contratado','Descartado'].includes(st))?daysInStage(d.id):null;
+    const agech=(dst!=null&&dst>=7)?`<span class="tag warn">⏱ ${dst} d</span>`:'';
+    const cch=e.contact_status==='Número malo'?'<span class="tag warn">tel malo</span>':(e.contact_status==='Respondió'?'<span class="tag eng">respondió</span>':'');
     return `<div class="card" data-id="${d.id}">
       <div class="top">
         ${d.photo?`<img class="av" src="${d.photo}" alt="">`:`<div class="av ph">${esc(d.ini)}</div>`}
@@ -308,7 +313,7 @@ function renderBench(){
         ${st!=='Nuevo'?`<span class="tag st">${st}</span>`:''}
         ${e.role?`<span class="tag role">${esc(e.role)}</span>`:''}
         <span class="fit f${d.fit_score}">FIT ${d.fit_score}</span>
-        <span class="tag eng">${esc(d.english_level)}</span>${ve}
+        <span class="tag eng">${esc(d.english_level)}</span>${ve}${agech}${cch}
         ${(d.tech_tools||[]).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
       </div>
       <div class="loc">${d.years_experience} a · ${esc(d.location||'ubicación no indicada')}${d.phone_experience?' · tel':''}${e.notes?' · <b>nota</b>':''}</div>
@@ -337,6 +342,13 @@ function openDetail(id){
         <button class="btn ghost" onclick="copyMsg(1,this)">Copiar 1er mensaje</button>
         <button class="btn ghost" onclick="copyMsg(2,this)">Copiar screen de voz</button>
         <button class="btn ghost" onclick="genProfile(openId)">Perfil para cliente</button>
+      </div>
+      <div style="margin-top:8px;display:flex;gap:6px;align-items:center;flex-wrap:wrap">
+        <span class="mono" style="font-size:9px">Contacto</span>
+        <button class="btn ghost" style="padding:5px 9px" onclick="setContact('Respondió')">Respondió</button>
+        <button class="btn ghost" style="padding:5px 9px" onclick="setContact('No responde')">No responde</button>
+        <button class="btn ghost" style="padding:5px 9px" onclick="setContact('Número malo')">Número malo</button>
+        <span class="tag" id="cstat">${e.contact_status?esc(e.contact_status):''}</span>
       </div></div>
     </div>
     ${R('Email',d.email?`<a href="mailto:${esc(d.email)}" style="color:var(--teal)">${esc(d.email)}</a>`:'')}
@@ -390,6 +402,7 @@ function openDetail(id){
 }
 async function persistFields(id,fields,msgEl){
   const row=Object.assign({candidate_id:+id,updated_by:ME,updated_at:new Date().toISOString()},fields);
+  if('stage' in fields){row.stage_at=row.updated_at;const le=ed(id);le.stage_at=row.stage_at;}
   const {error}=await sb.from('talent_edits').upsert(row,{onConflict:'candidate_id'});
   if(error){if(msgEl){msgEl.textContent='⚠ No se guardó: '+error.message;} return false;}
   return true;
@@ -403,6 +416,14 @@ async function persistEdit(id,msgEl){
 }
 const FMAP={f_stage:'stage',f_role:'role',f_veng:'verified_english',f_avail:'availability',
   f_salary:'salary',f_score:'call_score',f_notes:'notes',f_na:'next_action',f_nad:'next_date'};
+async function setContact(v){
+  const e=ed(openId);e.contact_status=v;
+  await persistFields(openId,{contact_status:v},document.getElementById('f_msg'));
+  const c=document.getElementById('cstat');if(c)c.textContent=v;
+  renderStats();
+}
+function daysInStage(id){const e=edv(id);if(!e.stage_at)return null;
+  return Math.floor((Date.now()-new Date(e.stage_at))/86400000);}
 async function saveFields(){
   const e=ed(openId);
   e.stage=document.getElementById('f_stage').value;
@@ -430,9 +451,10 @@ async function addIv(){
             type:document.getElementById('iv_type').value,result:document.getElementById('iv_res').value,
             notes:document.getElementById('iv_notes').value.trim()};
   if(!iv.when&&!iv.notes){document.getElementById('ivmsg').textContent='Pon al menos fecha o nota';return;}
-  const {error}=await sb.from('talent_interviews').insert({candidate_id:+openId,when_at:iv.when||null,
-    who:iv.who||null,type:iv.type||null,result:iv.result||null,notes:iv.notes||null,created_by:ME});
+  const {data:ivd,error}=await sb.from('talent_interviews').insert({candidate_id:+openId,when_at:iv.when||null,
+    who:iv.who||null,type:iv.type||null,result:iv.result||null,notes:iv.notes||null,created_by:ME}).select();
   if(error){document.getElementById('ivmsg').textContent='⚠ No se guardó: '+error.message;return;}
+  if(ivd&&ivd[0])SEENIV.add(ivd[0].id);
   e.interviews.push(iv);
   if((edv(openId).stage||'Nuevo')==='Nuevo'||edv(openId).stage==='Contactar'){
     e.stage=iv.type==='Screen de voz'?'Screen de voz':'Entrevista';
@@ -454,8 +476,9 @@ function renderPipeline(){
     const cards=g.slice(0,lim).map(d=>{
       const e=edv(d.id);
       const next=(e.interviews||[]).filter(iv=>iv.when&&iv.when>=todayISO()).sort((a,b)=>a.when<b.when?-1:1)[0];
+      const kd=daysInStage(d.id);
       return `<div class="kcard" draggable="true" data-id="${d.id}"><div class="knm">${esc(d.name)}</div>
-        <div class="ksb">${esc(d.english_level)} · fit ${d.fit_score}${e.role?' · '+esc(e.role):''}${next?'<br>&#128197; '+esc(next.when.replace('T',' ')):''}${e.next_action?'<br>&#9873; '+esc(e.next_action)+(e.next_date?' · '+esc(e.next_date):''):''}</div></div>`;
+        <div class="ksb">${esc(d.english_level)} · fit ${d.fit_score}${e.role?' · '+esc(e.role):''}${(kd!=null&&kd>=7&&s!=='Nuevo')?' · ⏱ '+kd+' d':''}${next?'<br>&#128197; '+esc(next.when.replace('T',' ')):''}${e.next_action?'<br>&#9873; '+esc(e.next_action)+(e.next_date?' · '+esc(e.next_date):''):''}</div></div>`;
     }).join('')||'<div class="ksb" style="padding:6px;color:#8a8578">—</div>';
     const more=g.length>lim?`<button class="kmore" data-s="${s}">Ver ${g.length-lim} más</button>`:'';
     return `<div class="kcol${g.length?'':' kempty'}" data-s="${s}"><h4>${s}<span>${g.length}</span></h4><div class="kbody">${cards}${more}</div></div>`;
@@ -494,6 +517,7 @@ function renderHoy(){
   const soon=DATA.filter(d=>{const e=edv(d.id);return e.next_date&&e.next_date>today&&active(d);}).sort((a,b)=>edv(a.id).next_date<edv(b.id).next_date?-1:1).slice(0,15);
   const ivs=allInterviews().filter(x=>x.when&&x.when.slice(0,10)>=today).sort((a,b)=>a.when<b.when?-1:1).slice(0,15);
   const noNext=DATA.filter(d=>['Contactar','Screen de voz','Entrevista'].includes(stageOf(d))&&!edv(d.id).next_date&&!(edv(d.id).interviews||[]).some(iv=>iv.when&&iv.when>=todayISO()));
+  const stuck=DATA.filter(d=>!['Nuevo','Contratado','Descartado'].includes(stageOf(d))&&(daysInStage(d.id)||0)>=7).sort((a,b)=>(daysInStage(b.id)||0)-(daysInStage(a.id)||0)).slice(0,20);
   const row=d=>{const e=edv(d.id);return `<tr class="click" data-id="${d.id}"><td><b>${esc(d.name)}</b></td><td>${stageOf(d)}</td><td>${esc(e.role||'')}</td><td>${esc(e.next_action||'—')}</td><td>${esc(e.next_date||'')}</td></tr>`;};
   const tb=(g,emptyTxt)=>g.length?`<table class="tb"><tr><th>Candidato</th><th>Etapa</th><th>Búsqueda</th><th>Próxima acción</th><th>Fecha</th></tr>${g.map(row).join('')}</table>`:`<div class="hl">${emptyTxt}</div>`;
   const ivrow=x=>{const d=byId[x.id];return `<tr class="click" data-id="${x.id}"><td><b>${esc(d?d.name:'?')}</b></td><td>${esc(x.when.replace('T',' '))}</td><td>${esc(x.type||'')}</td><td>${esc(x.who||'')}</td></tr>`;};
@@ -501,6 +525,8 @@ function renderHoy(){
     <div class="panelbox"><h3>Acciones vencidas o para hoy (${due.length})</h3>${tb(due,'Nada vencido. Bien.')}</div>
     <div class="panelbox"><h3>Entrevistas agendadas (${ivs.length})</h3>${ivs.length?`<table class="tb"><tr><th>Candidato</th><th>Cuándo</th><th>Tipo</th><th>Entrevistador</th></tr>${ivs.map(ivrow).join('')}</table>`:'<div class="hl">Sin entrevistas próximas.</div>'}</div>
     <div class="panelbox"><h3>Próximas acciones programadas (${soon.length})</h3>${tb(soon,'Ninguna programada.')}</div>
+    <div class="panelbox"><h3>Estancados — 7+ días sin cambiar de etapa (${stuck.length})</h3>
+      ${stuck.length?`<table class="tb"><tr><th>Candidato</th><th>Etapa</th><th>Días</th><th>Búsqueda</th></tr>${stuck.map(d=>{const e=edv(d.id);return `<tr class="click" data-id="${d.id}"><td><b>${esc(d.name)}</b></td><td>${stageOf(d)}</td><td><b>${daysInStage(d.id)}</b></td><td>${esc(e.role||'')}</td></tr>`;}).join('')}</table>`:'<div class="hl">Nadie estancado. Bien.</div>'}</div>
     <div class="panelbox"><h3>En proceso SIN próxima acción (${noNext.length})</h3>
       <div class="hl" style="margin-bottom:8px">Candidatos activos que nadie está moviendo — asígnales acción y fecha o van a morir en el pipeline.</div>${tb(noNext,'Todos tienen acción asignada.')}</div>`;
   document.getElementById('view-hoy').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
@@ -535,6 +561,12 @@ function renderAna(){
   const rmax=Math.max(...roles.map(x=>x[1]),1);
   const src=[...new Set(DATA.map(d=>d.source))].map(s=>[s,DATA.filter(d=>d.source===s).length]);
   const scr=allInterviews().filter(x=>x.type==='Screen de voz');
+  const stagesMid=['Contactar','Screen de voz','Entrevista','Verificado','Oferta'];
+  const ageRows=stagesMid.map(s2=>{const g=DATA.filter(d=>stageOf(d)===s2&&edv(d.id).stage_at);
+    const av=g.length?Math.round(g.reduce((t,d)=>t+(Date.now()-new Date(edv(d.id).stage_at))/86400000,0)/g.length):0;return [s2,av];});
+  const so=SEARCHES.filter(s2=>s2.status==='Abierta').map(s2=>[(s2.client_name||s2.role_title||('#'+s2.id)),Math.max(0,Math.floor((Date.now()-new Date(s2.created_at))/86400000))]);
+  const closedS=SEARCHES.filter(s2=>s2.closed_at);
+  const ttf=closedS.length?Math.round(closedS.reduce((t,s2)=>t+Math.max(0,(new Date(s2.closed_at)-new Date(s2.created_at))/86400000),0)/closedS.length):null;
   const pass=scr.filter(x=>x.result==='Pasó').length, fail=scr.filter(x=>x.result==='No pasó').length;
   document.getElementById('view-ana').innerHTML=`
     <div class="panelbox"><h3>Embudo por etapa</h3>${bars(stage,smax)}</div>
@@ -546,6 +578,10 @@ function renderAna(){
       <div class="arow"><div>Realizados</div><div class="abar"><i style="width:${scr.length?100:0}%"></i></div><div style="text-align:right"><b>${scr.length}</b></div></div>
       <div class="arow"><div>Pasaron</div><div class="abar"><i style="width:${scr.length?Math.round(pass/Math.max(scr.length,1)*100):0}%"></i></div><div style="text-align:right"><b>${pass}</b></div></div>
       <div class="arow"><div>No pasaron</div><div class="abar"><i class="mut" style="width:${scr.length?Math.round(fail/Math.max(scr.length,1)*100):0}%"></i></div><div style="text-align:right"><b>${fail}</b></div></div></div>
+    <div class="panelbox"><h3>Días promedio en etapa actual</h3>${bars(ageRows,Math.max(...ageRows.map(x=>x[1]),1))}
+      <div class="hl" style="margin-top:8px">Solo cuenta candidatos con fecha de etapa registrada (desde hoy en adelante).</div></div>
+    <div class="panelbox"><h3>Búsquedas — días abiertos</h3>${so.length?bars(so,Math.max(...so.map(x=>x[1]),1)):'<div class="hl">Sin búsquedas abiertas.</div>'}
+      ${ttf!=null?`<div class="hl" style="margin-top:8px">Time-to-fill promedio (cerradas): <b>${ttf} días</b></div>`:''}</div>
     <div class="panelbox"><h3>Origen</h3>${bars(src,Math.max(...src.map(x=>x[1]),1))}</div>`;
 }
 
@@ -623,8 +659,11 @@ function matchesFor(s){
     const er=engRankOf(d); if(er<req)return;
     const e=edv(d.id); const ivs=e.interviews||[];
     if(ivs.some(iv=>iv.type==='Screen de voz'&&iv.result==='No pasó'))return; // reprobó inglés: fuera
+    if(e.contact_status==='Número malo')return; // no hay cómo contactarlo
     let pts=d.fit_score*10; const why=[]; const warn=[];
     if(e.verified_english){pts+=10;why.push('✓ '+e.verified_english+' verificado');}
+    if(e.contact_status==='Respondió'){pts+=8;why.push('respondió');}
+    if(e.contact_status==='No responde')warn.push('no responde');
     if(ivs.some(iv=>iv.type==='Screen de voz'&&iv.result==='Pasó')){pts+=15;why.push('✓ screen pasado');}
     if(e.call_score){pts+=(+e.call_score||0)*4;why.push('llamada '+e.call_score+'/5');}
     if(ivs.some(iv=>iv.result==='No se presentó')){pts-=20;warn.push('no se presentó antes');}
@@ -661,8 +700,9 @@ async function saveSearch(){
   renderSearch();renderStats();
 }
 async function closeSearch(id,st){
-  const {error}=await sb.from('talent_searches').update({status:st}).eq('id',id);
-  if(!error){const s=SEARCHES.find(x=>x.id===id);if(s)s.status=st;renderSearch();renderStats();}
+  const ca=st==='Cerrada'?new Date().toISOString():null;
+  const {error}=await sb.from('talent_searches').update({status:st,closed_at:ca}).eq('id',id);
+  if(!error){const s=SEARCHES.find(x=>x.id===id);if(s){s.status=st;s.closed_at=ca;}renderSearch();renderStats();}
 }
 async function assignToSearch(cid){
   const s=SEARCHES.find(x=>x.id===curSearchId);if(!s)return;
@@ -681,7 +721,7 @@ function renderSearch(){
       <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
         <b style="font-size:15px">${esc(s.client_name||'—')}</b>
         <span class="hl">${esc(s.role_title||'')}</span>
-        <span style="margin-left:auto" class="mono">${n} candidatos</span>
+        <span style="margin-left:auto" class="mono">${n} candidatos${s.status==='Abierta'&&s.created_at?' · '+Math.max(0,Math.floor((Date.now()-new Date(s.created_at))/86400000))+' d abierta':''}</span>
       </div>
       <div class="meta" style="margin-top:8px">${chip(s.vertical)}${chip('Inglés '+(s.min_english||'C1'))}${chip(s.tools)}${chip(s.hours)}
         ${s.status!=='Abierta'?'<span class="tag" style="background:var(--sand)">Cerrada</span>':''}
@@ -734,10 +774,106 @@ function renderSearch(){
   document.getElementById('view-search').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
 }
 
+/* ---------- aplicaciones ---------- */
+function updateAppTab(){const t=document.querySelector('.tab[data-v="apps"]');
+  if(t){const n=APPS.filter(a=>a.status==='Nueva').length;t.textContent='Aplicaciones'+(n?' ('+n+')':'');}}
+function renderApps(){
+  const nNew=APPS.filter(a=>a.status==='Nueva').length;
+  const rel=t=>{if(!t)return'';const d=Math.floor((Date.now()-new Date(t))/86400000);return d<=0?'hoy':d+' d';};
+  const card=a=>`<div class="panelbox" style="${a.status!=='Nueva'?'opacity:.55':''}">
+    <div style="display:flex;gap:8px;align-items:baseline;flex-wrap:wrap">
+      <b style="font-size:15px">${esc(a.name||'—')}</b>
+      ${a.english?`<span class="tag eng">${esc(a.english)}</span>`:''}
+      ${a.years?`<span class="tag">${esc(a.years)} años</span>`:''}
+      ${a.phone_exp?'<span class="tag">teléfono</span>':''}
+      ${a.sales_exp?'<span class="tag">ventas</span>':''}
+      ${a.status!=='Nueva'?`<span class="tag">${esc(a.status)}</span>`:''}
+      <span style="margin-left:auto" class="mono">${rel(a.created_at)}</span>
+    </div>
+    <div class="hl" style="margin-top:6px">${esc(a.location||'')} · ${esc(a.phone||'')} · ${esc(a.email||'')}</div>
+    ${a.tools?`<div class="hl" style="margin-top:3px">Herramientas: ${esc(a.tools)}</div>`:''}
+    ${a.roles?`<div class="hl">Roles: ${esc(a.roles)}</div>`:''}
+    ${a.summary?`<div style="margin-top:6px;font-size:13.5px">${esc(a.summary)}</div>`:''}
+    ${(a.availability||a.salary)?`<div class="hl" style="margin-top:3px">${a.availability?'Disponibilidad: '+esc(a.availability):''}${a.salary?' · Expectativa: '+esc(a.salary)+' USD':''}</div>`:''}
+    ${a.status==='Nueva'?`<div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
+      <button class="btn teal" onclick="convertApp(${a.id})">Convertir en candidato</button>
+      ${waLink(a.phone)?`<a class="btn ghost" style="text-decoration:none" target="_blank" href="${waLink(a.phone)}">WhatsApp</a>`:''}
+      <button class="btn ghost" onclick="setAppStatus(${a.id},'Descartada')">Descartar</button></div>`:''}
+  </div>`;
+  document.getElementById('view-apps').innerHTML=`
+    <div class="panelbox"><h3>Aplicaciones (${nNew} nuevas)</h3>
+      <div class="hl">Link público para candidatos:
+        <b>https://talent-portal-rose.vercel.app/aplicar.html</b>
+        <button class="btn ghost" style="margin-left:8px;padding:4px 8px" onclick="copyTxt('https://talent-portal-rose.vercel.app/aplicar.html',this)">Copiar link</button>
+        <span class="msg" id="appmsg"></span></div></div>
+    ${APPS.map(card).join('')||'<div class="panelbox"><div class="hl">Sin aplicaciones todavía. Comparte el link en Computrabajo, Instagram y estados de WhatsApp — cada aplicación cae aquí sola.</div></div>'}`;
+}
+async function setAppStatus(id,st){
+  const {error}=await sb.from('talent_applications').update({status:st}).eq('id',id);
+  if(!error){const a=APPS.find(x=>x.id===id);if(a)a.status=st;renderApps();updateAppTab();}
+}
+async function convertApp(id){
+  const a=APPS.find(x=>x.id===id);if(!a)return;
+  const ENG={'Nativo':'Native','C2':'C2','C1':'C1 / Advanced','B2':'B2 / Intermediate','B1':'B1'};
+  const engl=ENG[a.english]||'Unknown';
+  const nid=DATA.reduce((m,d)=>Math.max(m,d.id),0)+1;
+  const fit=(['Native','C2','C1 / Advanced'].includes(engl)&&a.phone_exp)?4:3;
+  const cand={id:nid,file:'',name:a.name||'',email:a.email||'',phone:a.phone||'',location:a.location||'',
+    headline:((a.roles||'').split(',')[0]||'Aplicación web').trim(),years_experience:parseInt(a.years)||0,
+    english_level:engl,english_evidence:'Autodeclarado en aplicación web — verificar con screen de voz',
+    other_languages:[],phone_experience:!!a.phone_exp,customer_service:true,sales_experience:!!a.sales_exp,
+    admin_va_experience:true,tech_tools:(a.tools||'').split(',').map(t=>t.trim()).filter(Boolean),
+    industries:[],education:'',best_fit_roles:(a.roles||'').split(',').map(t=>t.trim()).filter(Boolean),
+    fit_score:fit,strengths:a.summary||'',concerns:'Aplicación web sin CV — validar experiencia en screening.',
+    source:'Aplicación web',photo:'',ini:(a.name||'?').trim().split(/\s+/).slice(0,2).map(w=>(w[0]||'')).join('').toUpperCase()};
+  const {error}=await sb.from('talent_candidates').insert({id:nid,data:cand});
+  const m=document.getElementById('appmsg');
+  if(error){if(m)m.textContent='⚠ '+error.message;return;}
+  DATA.push(cand);byId[nid]=cand;
+  const ef={};if(a.availability)ef.availability=a.availability;if(a.salary)ef.salary=a.salary+' USD';
+  if(Object.keys(ef).length)await persistFields(nid,ef,null);
+  await setAppStatus(id,'Convertida');
+  populateFilters();renderStats();
+  if(m){m.textContent='Convertido ✓ — ya está en el Bench';setTimeout(()=>{if(m)m.textContent='';},2500);}
+}
+
+/* ---------- realtime ---------- */
+function softRefresh(){clearTimeout(RTDEB);RTDEB=setTimeout(()=>{try{renderStats();renderView();updateAppTab();}catch(e){}},400);}
+function applyEditRow(r){
+  const prev=EDITS[r.candidate_id]||{};
+  EDITS[r.candidate_id]=Object.assign({},prev,{stage:r.stage||undefined,role:r.role||undefined,
+    verified_english:r.verified_english||undefined,availability:r.availability||undefined,
+    salary:r.salary||undefined,call_score:r.call_score||undefined,notes:r.notes||undefined,
+    next_action:r.next_action||undefined,next_date:r.next_date||undefined,checks:r.checks||{},
+    contact_status:r.contact_status||undefined,stage_at:r.stage_at||undefined,interviews:prev.interviews});
+}
+function startRealtime(){
+  try{
+    sb.channel('talent-sync')
+      .on('postgres_changes',{event:'*',schema:'public',table:'talent_edits'},p=>{
+        if(p.new&&p.new.candidate_id){applyEditRow(p.new);softRefresh();}})
+      .on('postgres_changes',{event:'INSERT',schema:'public',table:'talent_interviews'},p=>{
+        const r=p.new;if(!r||SEENIV.has(r.id))return;SEENIV.add(r.id);
+        const e=ed(r.candidate_id);e.interviews=e.interviews||[];
+        e.interviews.push({when:(r.when_at||'').slice(0,16),who:r.who||'',type:r.type||'',result:r.result||'',notes:r.notes||''});
+        softRefresh();})
+      .on('postgres_changes',{event:'*',schema:'public',table:'talent_searches'},p=>{
+        const r=p.new;if(!r||!r.id)return;
+        const i=SEARCHES.findIndex(x=>x.id===r.id);
+        if(i>=0)SEARCHES[i]=r;else SEARCHES.unshift(r);softRefresh();})
+      .on('postgres_changes',{event:'*',schema:'public',table:'talent_applications'},p=>{
+        const r=p.new;if(!r||!r.id)return;
+        const i=APPS.findIndex(x=>x.id===r.id);
+        if(i>=0)APPS[i]=r;else APPS.unshift(r);softRefresh();})
+      .subscribe();
+  }catch(e){}
+}
+
 /* ---------- tabs & wiring ---------- */
 function renderView(){
   if(curView==='bench')renderBench();
   else if(curView==='search')renderSearch();
+  else if(curView==='apps')renderApps();
   else if(curView==='pipeline')renderPipeline();
   else if(curView==='hoy')renderHoy();
   else if(curView==='meet')renderMeet();
@@ -762,13 +898,15 @@ document.getElementById('reset').addEventListener('click',()=>{
 });
 /* ---------- auth + boot ---------- */
 async function fetchAll(){
-  const [c,e2,iv,sr]=await Promise.all([
+  const [c,e2,iv,sr,ap]=await Promise.all([
     sb.from('talent_candidates').select('data').order('id'),
     sb.from('talent_edits').select('*'),
     sb.from('talent_interviews').select('*').order('id'),
-    sb.from('talent_searches').select('*').order('id',{ascending:false})
+    sb.from('talent_searches').select('*').order('id',{ascending:false}),
+    sb.from('talent_applications').select('*').order('id',{ascending:false})
   ]);
-  if(c.error)throw c.error; if(e2.error)throw e2.error; if(iv.error)throw iv.error; if(sr.error)throw sr.error;
+  if(c.error)throw c.error; if(e2.error)throw e2.error; if(iv.error)throw iv.error; if(sr.error)throw sr.error; if(ap.error)throw ap.error;
+  APPS=ap.data||[];
   SEARCHES=sr.data||[];
   if(curSearchId==null){const op=SEARCHES.find(x=>x.status==='Abierta');if(op)curSearchId=op.id;}
   DATA=(c.data||[]).map(r=>r.data);
@@ -777,8 +915,9 @@ async function fetchAll(){
   (e2.data||[]).forEach(r=>{EDITS[r.candidate_id]={stage:r.stage||undefined,role:r.role||undefined,
     verified_english:r.verified_english||undefined,availability:r.availability||undefined,
     salary:r.salary||undefined,call_score:r.call_score||undefined,notes:r.notes||undefined,
-    next_action:r.next_action||undefined,next_date:r.next_date||undefined,checks:r.checks||{}};});
-  (iv.data||[]).forEach(r=>{const e=ed(r.candidate_id);e.interviews=e.interviews||[];
+    next_action:r.next_action||undefined,next_date:r.next_date||undefined,checks:r.checks||{},
+    contact_status:r.contact_status||undefined,stage_at:r.stage_at||undefined};});
+  (iv.data||[]).forEach(r=>{SEENIV.add(r.id);const e=ed(r.candidate_id);e.interviews=e.interviews||[];
     e.interviews.push({when:(r.when_at||'').slice(0,16),who:r.who||'',type:r.type||'',result:r.result||'',notes:r.notes||''});});
 }
 async function boot(){
@@ -789,7 +928,7 @@ async function boot(){
     if(!DATA.length){g.textContent='Tu correo no está autorizado para ver los datos. Escríbele a gabriel@assistiq.io.';
       document.getElementById('loginbox').style.display='block';return;}
     populateFilters();
-    renderStats();renderView();
+    renderStats();renderView();updateAppTab();startRealtime();
     document.getElementById('who').textContent=ME;
     document.getElementById('login').style.display='none';
     g.textContent='';
