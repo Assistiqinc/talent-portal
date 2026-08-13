@@ -1,6 +1,8 @@
 <!DOCTYPE html>
 <html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Assistiq — Aplica como asistente virtual bilingüe</title>
+<meta property="og:title" content="Assistiq — Trabaja con empresas de EE. UU.">
+<meta property="og:description" content="Asistente virtual bilingüe: remoto u oficina, horario del este, pago en dólares. Aplica en 5 minutos.">
 <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><circle cx="16" cy="16" r="9" fill="%230D9488"/></svg>'>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -13,30 +15,39 @@ body{background:var(--ivory);color:var(--ink);font-family:'DM Sans',-apple-syste
 h1{font-family:'Instrument Serif',Georgia,serif;font-size:31px;font-weight:400;line-height:1.15;margin-top:18px}
 .sub{color:var(--slate);margin-top:8px;font-size:14.5px}
 .card{background:var(--white);border:1px solid var(--line);border-radius:8px;padding:26px 24px;margin-top:22px;box-shadow:0 1px 3px rgba(10,10,10,.05)}
-label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#5B5B64;margin:16px 0 5px}
+.slbl{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;letter-spacing:.13em;text-transform:uppercase;color:var(--teal);margin:26px 0 0;padding-top:18px;border-top:1px solid var(--line)}
+.slbl:first-of-type{margin-top:0;padding-top:0;border-top:0}
+label{display:block;font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#5B5B64;margin:15px 0 5px}
 input,select,textarea{width:100%;font-family:inherit;font-size:15.5px;padding:11px 13px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:5px;outline:none}
 input:focus,select:focus,textarea:focus{border-color:var(--teal)}
-textarea{min-height:96px;resize:vertical}
+textarea{min-height:90px;resize:vertical}
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media(max-width:520px){.two{grid-template-columns:1fr}}
-.chk{display:flex;gap:9px;align-items:center;font-size:14.5px;margin-top:9px;cursor:pointer}
-.chk input{width:auto}
-.btn{width:100%;margin-top:24px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:15px;border:0;background:var(--teal);color:#fff;border-radius:6px;cursor:pointer}
+.chk{display:flex;gap:9px;align-items:flex-start;font-size:14.5px;margin-top:10px;cursor:pointer;line-height:1.4}
+.chk input{width:auto;margin-top:3px}
+.btn{width:100%;margin-top:26px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;letter-spacing:.1em;text-transform:uppercase;padding:15px;border:0;background:var(--teal);color:#fff;border-radius:6px;cursor:pointer}
 .btn:disabled{opacity:.6}
+.btn2{font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:11px 15px;border:1px solid var(--ink);background:var(--white);color:var(--ink);border-radius:5px;cursor:pointer}
+.btn2.rec{background:#B4530915;border-color:var(--amber);color:var(--amber)}
 .msg{margin-top:12px;font-size:14px;color:var(--amber)}
+.hint{font-size:13px;color:var(--slate);margin-top:6px}
+.vbox{background:#F5F1E6;border:1px dashed var(--line);border-radius:6px;padding:14px;margin-top:8px}
 .ok{text-align:center;padding:30px 10px}
 .ok h2{font-family:'Instrument Serif',Georgia,serif;font-size:27px;font-weight:400}
 .ok p{color:var(--slate);margin-top:10px}
 .hp{position:absolute;left:-9999px;opacity:0}
 .foot{margin-top:26px;color:#8a8578;font-size:12px;text-align:center}
+audio{width:100%;margin-top:10px}
 </style></head><body>
 <div class="wrap">
   <div class="wm">assistiq<span style="color:var(--teal)">.</span></div>
   <h1>Trabaja como asistente virtual bilingüe para empresas de EE.&nbsp;UU.</h1>
-  <div class="sub">Trabajo remoto · horario del este · pago en dólares. Complete el formulario (3 minutos) y nuestro equipo le contactará por WhatsApp para una entrevista corta en inglés.</div>
+  <div class="sub">Horario del este · pago en dólares · equipo y supervisión de Assistiq. Complete el formulario (5 minutos). La nota de voz en inglés aumenta mucho sus posibilidades.</div>
   <div class="card" id="card">
     <form id="f">
       <input class="hp" type="text" id="website" name="website" tabindex="-1" autocomplete="off">
+
+      <div class="slbl">01 — Datos personales</div>
       <label>Nombre completo *</label>
       <input type="text" id="a_name" required>
       <div class="two">
@@ -44,26 +55,65 @@ textarea{min-height:96px;resize:vertical}
         <div><label>Correo *</label><input type="email" id="a_email" required></div>
       </div>
       <div class="two">
-        <div><label>Ciudad y estado</label><input type="text" id="a_loc" placeholder="Caracas, Distrito Capital"></div>
-        <div><label>Años de experiencia</label><input type="number" id="a_years" min="0" max="40"></div>
+        <div><label>Ciudad y estado *</label><input type="text" id="a_loc" required placeholder="Caracas, Distrito Capital"></div>
+        <div><label>¿Cómo se enteró de nosotros?</label>
+          <select id="a_heard"><option>Computrabajo</option><option>Instagram</option><option>Facebook</option><option>Referido</option><option>Otro</option></select></div>
       </div>
+      <label>Si fue referido(a) por alguien de Assistiq, ¿por quién?</label>
+      <input type="text" id="a_ref" placeholder="Nombre de quien le refirió (opcional)">
+
+      <div class="slbl">02 — Experiencia</div>
+      <div class="two">
+        <div><label>Años de experiencia *</label><input type="number" id="a_years" min="0" max="40" required></div>
+        <div><label>Educación</label><input type="text" id="a_edu" placeholder="TSU Administración, UCV…"></div>
+      </div>
+      <label>Último empleo (empresa y cargo)</label>
+      <input type="text" id="a_last" placeholder="Atento — Agente bilingüe cuenta de seguros">
+      <label>Áreas donde tiene experiencia</label>
+      <input type="text" id="a_roles" placeholder="atención al cliente, agendamiento de citas, dispatch, ventas, admin…">
+      <label>Herramientas y sistemas que maneja</label>
+      <input type="text" id="a_tools" placeholder="HubSpot, Zendesk, RingCentral, Excel…">
+      <label class="chk"><input type="checkbox" id="a_tel"> He atendido llamadas con clientes (call center, soporte, ventas)</label>
+      <label class="chk"><input type="checkbox" id="a_ventas"> Tengo experiencia en ventas</label>
+      <label class="chk"><input type="checkbox" id="a_us" onchange="document.getElementById('usd_row').style.display=this.checked?'block':'none'"> He trabajado con empresas o clientes de EE. UU.</label>
+      <div id="usd_row" style="display:none">
+        <label>¿Con qué empresa o tipo de clientes de EE. UU.?</label>
+        <input type="text" id="a_usd" placeholder="Empresa de mudanzas en Miami, clientes de seguros…">
+      </div>
+      <label>Cuéntenos su experiencia (2-3 líneas)</label>
+      <textarea id="a_sum" placeholder="Dónde ha trabajado, con qué tipo de clientes, en qué idioma…"></textarea>
+      <label>Adjunte su CV (PDF o Word, opcional)</label>
+      <input type="file" id="a_cv" accept=".pdf,.doc,.docx">
+
+      <div class="slbl">03 — Inglés</div>
       <label>Nivel de inglés hablado *</label>
       <select id="a_eng" required>
         <option value="">Seleccione…</option>
         <option>B1</option><option>B2</option><option>C1</option><option>C2</option><option>Nativo</option>
       </select>
-      <label class="chk" style="margin-top:14px"><input type="checkbox" id="a_tel"> He atendido llamadas con clientes (call center, soporte, ventas)</label>
-      <label class="chk"><input type="checkbox" id="a_ventas"> Tengo experiencia en ventas</label>
-      <label>Áreas donde tiene experiencia</label>
-      <input type="text" id="a_roles" placeholder="atención al cliente, agendamiento de citas, dispatch, admin…">
-      <label>Herramientas y sistemas que maneja</label>
-      <input type="text" id="a_tools" placeholder="HubSpot, Zendesk, RingCentral, Excel…">
-      <label>Cuéntenos su experiencia (2-3 líneas)</label>
-      <textarea id="a_sum" placeholder="Dónde ha trabajado, con qué tipo de clientes, en qué idioma…"></textarea>
+      <div class="vbox">
+        <b style="font-size:14.5px">Nota de voz en inglés (recomendada)</b>
+        <div class="hint">Grabe 60–90 segundos respondiendo, en inglés: <i>"Describe your last job and why you would like to work with US customers."</i> No buscamos perfección — queremos escuchar su fluidez natural.</div>
+        <div style="margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+          <button type="button" class="btn2" id="recbtn" onclick="toggleRec()">● Grabar nota de voz</button>
+          <span class="hint" id="recstate" style="margin-top:0"></span>
+        </div>
+        <audio id="vplay" controls style="display:none"></audio>
+      </div>
+
+      <div class="slbl">04 — Logística</div>
       <div class="two">
-        <div><label>Disponibilidad</label><select id="a_avail"><option>Inmediata</option><option>2 semanas</option><option>1 mes</option></select></div>
+        <div><label>Disponibilidad *</label><select id="a_avail"><option>Inmediata</option><option>2 semanas</option><option>1 mes</option></select></div>
         <div><label>Expectativa mensual (USD)</label><input type="number" id="a_sal" min="0" placeholder="500"></div>
       </div>
+      <label>¿Puede trabajar de forma presencial en nuestras oficinas en Venezuela? *</label>
+      <select id="a_pres" required>
+        <option value="">Seleccione…</option>
+        <option>Sí, presencial</option><option>Depende de la ciudad</option><option>Solo remoto</option>
+      </select>
+      <label class="chk"><input type="checkbox" id="a_sched"> Puedo trabajar en horario del este de EE. UU. (aprox. 8am–6pm ET)</label>
+      <label class="chk"><input type="checkbox" id="a_consent" required> Autorizo a Assistiq a guardar y procesar mis datos para procesos de selección. *</label>
+
       <button class="btn" type="submit" id="sbtn">Enviar aplicación</button>
       <div class="msg" id="fmsg"></div>
     </form>
@@ -73,28 +123,85 @@ textarea{min-height:96px;resize:vertical}
 <script>
 const SB_URL='https://jbysfyrgesrsgemqervj.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieXNmeXJnZXNyc2dlbXFlcnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjA1MTcsImV4cCI6MjA5ODkzNjUxN30._hz_CWETq8rZ6ggxLsACJ5uY-lAsruYTwqrl4D2d-IA';
+let rec=null,chunks=[],voiceBlob=null,voiceExt='webm',timerI=null,secs=0,stream=null;
+async function toggleRec(){
+  const rb=document.getElementById('recbtn'),rst=document.getElementById('recstate');
+  if(rec&&rec.state==='recording'){rec.stop();return;}
+  try{stream=await navigator.mediaDevices.getUserMedia({audio:true});}
+  catch(e){rst.textContent='No se pudo acceder al micrófono — revise permisos.';return;}
+  chunks=[];
+  let mime='';
+  if(window.MediaRecorder){
+    if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/webm')){mime='audio/webm';voiceExt='webm';}
+    else if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported('audio/mp4')){mime='audio/mp4';voiceExt='m4a';}
+  }else{rst.textContent='Su navegador no soporta grabación — puede continuar sin nota de voz.';return;}
+  rec=mime?new MediaRecorder(stream,{mimeType:mime}):new MediaRecorder(stream);
+  rec.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data);};
+  rec.onstop=()=>{
+    voiceBlob=new Blob(chunks,{type:rec.mimeType||'audio/webm'});
+    const au=document.getElementById('vplay');
+    au.src=URL.createObjectURL(voiceBlob);au.style.display='block';
+    rb.textContent='● Volver a grabar';rb.classList.remove('rec');
+    rst.textContent='Nota grabada ('+secs+' s). Escúchela y regrábela si quiere.';
+    clearInterval(timerI);
+    if(stream)stream.getTracks().forEach(t=>t.stop());
+  };
+  rec.start();secs=0;
+  rb.textContent='■ Detener';rb.classList.add('rec');
+  rst.textContent='Grabando… responda en inglés.';
+  timerI=setInterval(()=>{secs++;rst.textContent='Grabando… '+secs+' s (máx 120)';
+    if(secs>=120&&rec.state==='recording')rec.stop();},1000);
+}
+async function upload(path,body,ct){
+  const r=await fetch(SB_URL+'/storage/v1/object/aplicaciones/'+path,{method:'POST',
+    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':ct||'application/octet-stream'},body});
+  if(!r.ok)throw new Error('upload '+r.status);
+  return path;
+}
 document.getElementById('f').addEventListener('submit',async ev=>{
   ev.preventDefault();
-  if(document.getElementById('website').value)return; // honeypot
+  if(document.getElementById('website').value)return;
   const v=id=>document.getElementById(id).value.trim();
+  const c=id=>document.getElementById(id).checked;
   const b=document.getElementById('sbtn'),m=document.getElementById('fmsg');
   b.disabled=true;m.textContent='';
-  const row={name:v('a_name'),phone:v('a_phone'),email:v('a_email'),location:v('a_loc'),
-    years:v('a_years'),english:v('a_eng'),
-    phone_exp:document.getElementById('a_tel').checked,sales_exp:document.getElementById('a_ventas').checked,
-    roles:v('a_roles'),tools:v('a_tools'),summary:v('a_sum'),
-    availability:v('a_avail'),salary:v('a_sal'),source:'web'};
   try{
+    const tag=Date.now()+'-'+Math.random().toString(36).slice(2,8);
+    let cvPath=null,voicePath=null;
+    const cvF=document.getElementById('a_cv').files[0];
+    if(cvF){
+      if(cvF.size>9000000)throw new Error('El CV supera 9 MB — use una versión más liviana.');
+      b.textContent='SUBIENDO CV…';
+      const ext=(cvF.name.split('.').pop()||'pdf').toLowerCase();
+      cvPath=await upload('cv/'+tag+'.'+ext,cvF,cvF.type||'application/pdf');
+    }
+    if(voiceBlob){
+      b.textContent='SUBIENDO NOTA DE VOZ…';
+      voicePath=await upload('voz/'+tag+'.'+voiceExt,voiceBlob,voiceBlob.type||'audio/webm');
+    }
+    b.textContent='ENVIANDO…';
+    const row={name:v('a_name'),phone:v('a_phone'),email:v('a_email'),location:v('a_loc'),
+      heard_from:v('a_heard'),referral:v('a_ref'),
+      years:v('a_years'),education:v('a_edu'),last_job:v('a_last'),
+      roles:v('a_roles'),tools:v('a_tools'),
+      phone_exp:c('a_tel'),sales_exp:c('a_ventas'),
+      us_exp:c('a_us'),us_exp_detail:c('a_us')?v('a_usd'):'',
+      summary:v('a_sum'),english:v('a_eng'),
+      availability:v('a_avail'),salary:v('a_sal'),
+      presencial:v('a_pres'),schedule_ok:c('a_sched'),consent:c('a_consent'),
+      cv_path:cvPath,voice_path:voicePath,source:'web'};
     const r=await fetch(SB_URL+'/rest/v1/talent_applications',{method:'POST',
       headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY,'Content-Type':'application/json'},
       body:JSON.stringify(row)});
     if(!r.ok)throw new Error('HTTP '+r.status);
     document.getElementById('card').innerHTML='<div class="ok"><h2>Aplicación recibida ✓</h2>'+
       '<p>Gracias, '+(row.name.split(' ')[0]||'')+'. Nuestro equipo revisará su perfil y le escribirá por WhatsApp.</p>'+
-      '<p><b>Siguiente paso:</b> le pediremos 3 notas de voz cortas en inglés como screening — puede ir preparándose.</p></div>';
+      (voicePath?'<p>Su nota de voz en inglés quedó adjunta — eso acelera su proceso.</p>'
+                :'<p><b>Siguiente paso:</b> le pediremos 3 notas de voz cortas en inglés como screening — puede ir preparándose.</p>')+
+      '</div>';
   }catch(e){
-    b.disabled=false;
-    m.textContent='No se pudo enviar. Revise su conexión e intente de nuevo.';
+    b.disabled=false;b.textContent='ENVIAR APLICACIÓN';
+    m.textContent=(e&&e.message&&e.message.startsWith('El CV'))?e.message:'No se pudo enviar. Revise su conexión e intente de nuevo.';
   }
 });
 </script></body></html>

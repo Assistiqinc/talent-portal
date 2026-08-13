@@ -775,6 +775,11 @@ function renderSearch(){
 }
 
 /* ---------- aplicaciones ---------- */
+async function signedUrl(p){try{const {data,error}=await sb.storage.from('aplicaciones').createSignedUrl(p,3600);
+  return error?null:data.signedUrl;}catch(e){return null;}}
+async function openFile(p){const u=await signedUrl(p);if(u)window.open(u,'_blank');}
+async function playVoice(p,id){const u=await signedUrl(p);if(!u)return;
+  const el=document.getElementById('vp'+id);if(el){el.src=u;el.style.display='block';el.play();}}
 function updateAppTab(){const t=document.querySelector('.tab[data-v="apps"]');
   if(t){const n=APPS.filter(a=>a.status==='Nueva').length;t.textContent='Aplicaciones'+(n?' ('+n+')':'');}}
 function renderApps(){
@@ -787,14 +792,26 @@ function renderApps(){
       ${a.years?`<span class="tag">${esc(a.years)} años</span>`:''}
       ${a.phone_exp?'<span class="tag">teléfono</span>':''}
       ${a.sales_exp?'<span class="tag">ventas</span>':''}
+      ${a.presencial?`<span class="tag">${esc(a.presencial)}</span>`:''}
+      ${a.schedule_ok?'<span class="tag">horario ET</span>':''}
+      ${a.voice_path?'<span class="tag eng">nota de voz</span>':''}
+      ${a.cv_path?'<span class="tag">CV</span>':''}
       ${a.status!=='Nueva'?`<span class="tag">${esc(a.status)}</span>`:''}
       <span style="margin-left:auto" class="mono">${rel(a.created_at)}</span>
     </div>
     <div class="hl" style="margin-top:6px">${esc(a.location||'')} · ${esc(a.phone||'')} · ${esc(a.email||'')}</div>
     ${a.tools?`<div class="hl" style="margin-top:3px">Herramientas: ${esc(a.tools)}</div>`:''}
     ${a.roles?`<div class="hl">Roles: ${esc(a.roles)}</div>`:''}
+    ${a.last_job?`<div class="hl">Último empleo: ${esc(a.last_job)}</div>`:''}
+    ${a.education?`<div class="hl">Educación: ${esc(a.education)}</div>`:''}
+    ${a.us_exp?`<div class="hl">Experiencia con EE.UU.: ${esc(a.us_exp_detail||'sí')}</div>`:''}
+    ${(a.heard_from||a.referral)?`<div class="hl">${a.heard_from?'Fuente: '+esc(a.heard_from):''}${a.referral?' · Referido por: '+esc(a.referral):''}</div>`:''}
     ${a.summary?`<div style="margin-top:6px;font-size:13.5px">${esc(a.summary)}</div>`:''}
     ${(a.availability||a.salary)?`<div class="hl" style="margin-top:3px">${a.availability?'Disponibilidad: '+esc(a.availability):''}${a.salary?' · Expectativa: '+esc(a.salary)+' USD':''}</div>`:''}
+    ${(a.voice_path||a.cv_path)?`<div style="margin-top:9px;display:flex;gap:7px;flex-wrap:wrap">
+      ${a.voice_path?`<button class="btn ghost" onclick="playVoice('${esc(a.voice_path)}',${a.id})">▶ Escuchar nota de voz</button>`:''}
+      ${a.cv_path?`<button class="btn ghost" onclick="openFile('${esc(a.cv_path)}')">Ver CV</button>`:''}
+    </div><audio id="vp${a.id}" controls style="display:none;width:100%;margin-top:8px"></audio>`:''}
     ${a.status==='Nueva'?`<div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
       <button class="btn teal" onclick="convertApp(${a.id})">Convertir en candidato</button>
       ${waLink(a.phone)?`<a class="btn ghost" style="text-decoration:none" target="_blank" href="${waLink(a.phone)}">WhatsApp</a>`:''}
@@ -820,11 +837,11 @@ async function convertApp(id){
   const fit=(['Native','C2','C1 / Advanced'].includes(engl)&&a.phone_exp)?4:3;
   const cand={id:nid,file:'',name:a.name||'',email:a.email||'',phone:a.phone||'',location:a.location||'',
     headline:((a.roles||'').split(',')[0]||'Aplicación web').trim(),years_experience:parseInt(a.years)||0,
-    english_level:engl,english_evidence:'Autodeclarado en aplicación web — verificar con screen de voz',
+    english_level:engl,english_evidence:'Autodeclarado en aplicación web'+(a.voice_path?' — nota de voz en inglés adjunta':' — verificar con screen de voz'),
     other_languages:[],phone_experience:!!a.phone_exp,customer_service:true,sales_experience:!!a.sales_exp,
     admin_va_experience:true,tech_tools:(a.tools||'').split(',').map(t=>t.trim()).filter(Boolean),
-    industries:[],education:'',best_fit_roles:(a.roles||'').split(',').map(t=>t.trim()).filter(Boolean),
-    fit_score:fit,strengths:a.summary||'',concerns:'Aplicación web sin CV — validar experiencia en screening.',
+    industries:a.us_exp?['US experience']:[],education:a.education||'',best_fit_roles:(a.roles||'').split(',').map(t=>t.trim()).filter(Boolean),
+    fit_score:fit,strengths:[a.summary||'',a.last_job?('Último empleo: '+a.last_job):'',a.us_exp?('Experiencia EE.UU.: '+(a.us_exp_detail||'sí')):''].filter(Boolean).join(' · '),concerns:(a.presencial==='Solo remoto'?'Solo remoto — no encaja con el modelo presencial. ':'')+(a.cv_path?'':'Sin CV adjunto. ')+'Aplicación web — validar en screening.',
     source:'Aplicación web',photo:'',ini:(a.name||'?').trim().split(/\s+/).slice(0,2).map(w=>(w[0]||'')).join('').toUpperCase()};
   const {error}=await sb.from('talent_candidates').insert({id:nid,data:cand});
   const m=document.getElementById('appmsg');
