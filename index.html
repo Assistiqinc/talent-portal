@@ -72,6 +72,10 @@ main{padding:22px 0 100px}
 .kmore{width:100%;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:7px;border:1px dashed #b6b0a2;background:transparent;color:#57534E;border-radius:3px;cursor:pointer;margin-top:2px}
 .kcard{background:var(--white);border:1px solid var(--line2);border-radius:5px;padding:9px 11px;margin-bottom:7px;cursor:pointer;font-size:13px}
 .kcard:hover{border-color:var(--teal)}
+.kcard{cursor:grab}
+.kcard:active{cursor:grabbing}
+.kcard.dragging{opacity:.45}
+.kcol.dropok{outline:2px dashed var(--teal);outline-offset:-3px;background:#E0DBCB}
 .kcard .knm{font-weight:500}
 .kcard .ksb{color:#50505A;font-size:11.5px;margin-top:2px}
 /* tables */
@@ -201,7 +205,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 const SB_URL='https://jbysfyrgesrsgemqervj.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieXNmeXJnZXNyc2dlbXFlcnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjA1MTcsImV4cCI6MjA5ODkzNjUxN30._hz_CWETq8rZ6ggxLsACJ5uY-lAsruYTwqrl4D2d-IA';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-let DATA=[]; let EDITS={}; let byId={}; let ME=''; let SEARCHES=[]; let curSearchId=null;
+let DATA=[]; let EDITS={}; let byId={}; let ME=''; let SEARCHES=[]; let curSearchId=null; let DRAGID=null; let DRAGJUST=false;
 const STAGES=['Nuevo','Contactar','Screen de voz','Entrevista','Verificado','Oferta','Contratado','Descartado'];
 const CHK=[['eng','Inglés verificado en llamada'],['loc','Ubicación confirmada'],['ref','Referencias contactadas'],['avail','Disponibilidad confirmada'],['overlap','Empleos activos aclarados']];
 const ENGRANK={'Native':5,'C2':5,'C1 / Advanced':4,'B2 / Intermediate':3,'B1':2,'Basic':1,'Unknown':0};
@@ -379,21 +383,26 @@ function openDetail(id){
   document.querySelectorAll('.chkbox').forEach(cb=>cb.addEventListener('change',async()=>{
     const e2=ed(openId); e2.checks=e2.checks||{}; e2.checks[cb.dataset.k]=cb.checked;
     const cc=document.getElementById('chkcount'); if(cc)cc.textContent=chkCount(openId);
-    await persistEdit(openId,document.getElementById('f_msg'));
+    await persistFields(openId,{checks:e2.checks},document.getElementById('f_msg'));
     renderStats();
   }));
   document.getElementById('ov').classList.add('show');
 }
-async function persistEdit(id,msgEl){
-  const e=edv(id);
-  const row={candidate_id:+id,stage:e.stage||null,role:e.role||null,verified_english:e.verified_english||null,
-    availability:e.availability||null,salary:e.salary||null,call_score:String(e.call_score||'')||null,
-    notes:e.notes||null,next_action:e.next_action||null,next_date:e.next_date||null,
-    checks:e.checks||{},updated_by:ME,updated_at:new Date().toISOString()};
+async function persistFields(id,fields,msgEl){
+  const row=Object.assign({candidate_id:+id,updated_by:ME,updated_at:new Date().toISOString()},fields);
   const {error}=await sb.from('talent_edits').upsert(row,{onConflict:'candidate_id'});
   if(error){if(msgEl){msgEl.textContent='⚠ No se guardó: '+error.message;} return false;}
   return true;
 }
+async function persistEdit(id,msgEl){
+  const e=edv(id);
+  return persistFields(id,{stage:e.stage||null,role:e.role||null,verified_english:e.verified_english||null,
+    availability:e.availability||null,salary:e.salary||null,call_score:String(e.call_score||'')||null,
+    notes:e.notes||null,next_action:e.next_action||null,next_date:e.next_date||null,
+    checks:e.checks||{}},msgEl);
+}
+const FMAP={f_stage:'stage',f_role:'role',f_veng:'verified_english',f_avail:'availability',
+  f_salary:'salary',f_score:'call_score',f_notes:'notes',f_na:'next_action',f_nad:'next_date'};
 async function saveFields(){
   const e=ed(openId);
   e.stage=document.getElementById('f_stage').value;
@@ -406,7 +415,9 @@ async function saveFields(){
   e.next_action=document.getElementById('f_na').value.trim();
   e.next_date=document.getElementById('f_nad').value.trim();
   const m=document.getElementById('f_msg');
-  const ok=await persistEdit(openId,m);
+  const ev=arguments[0];
+  const fk=ev&&ev.target&&FMAP[ev.target.id];
+  const ok=fk?await persistFields(openId,{[fk]:e[fk]||null},m):await persistEdit(openId,m);
   if(ok&&m){
     if(e.stage==='Verificado'&&chkCount(openId)<5){m.textContent='⚠ Verificado con '+chkCount(openId)+'/5 checks';}
     else{m.textContent='Guardado ✓';setTimeout(()=>{if(m)m.textContent='';},1400);}
@@ -425,7 +436,7 @@ async function addIv(){
   e.interviews.push(iv);
   if((edv(openId).stage||'Nuevo')==='Nuevo'||edv(openId).stage==='Contactar'){
     e.stage=iv.type==='Screen de voz'?'Screen de voz':'Entrevista';
-    await persistEdit(openId,null);
+    await persistFields(openId,{stage:e.stage},null);
   }
   openDetail(openId); renderStats();
 }
@@ -443,15 +454,33 @@ function renderPipeline(){
     const cards=g.slice(0,lim).map(d=>{
       const e=edv(d.id);
       const next=(e.interviews||[]).filter(iv=>iv.when&&iv.when>=todayISO()).sort((a,b)=>a.when<b.when?-1:1)[0];
-      return `<div class="kcard" data-id="${d.id}"><div class="knm">${esc(d.name)}</div>
+      return `<div class="kcard" draggable="true" data-id="${d.id}"><div class="knm">${esc(d.name)}</div>
         <div class="ksb">${esc(d.english_level)} · fit ${d.fit_score}${e.role?' · '+esc(e.role):''}${next?'<br>&#128197; '+esc(next.when.replace('T',' ')):''}${e.next_action?'<br>&#9873; '+esc(e.next_action)+(e.next_date?' · '+esc(e.next_date):''):''}</div></div>`;
     }).join('')||'<div class="ksb" style="padding:6px;color:#8a8578">—</div>';
     const more=g.length>lim?`<button class="kmore" data-s="${s}">Ver ${g.length-lim} más</button>`:'';
-    return `<div class="kcol${g.length?'':' kempty'}"><h4>${s}<span>${g.length}</span></h4><div class="kbody">${cards}${more}</div></div>`;
+    return `<div class="kcol${g.length?'':' kempty'}" data-s="${s}"><h4>${s}<span>${g.length}</span></h4><div class="kbody">${cards}${more}</div></div>`;
   }).join('');
   document.getElementById('kb').innerHTML=cols;
+  document.querySelectorAll('.kcard').forEach(c=>{
+    c.addEventListener('dragstart',ev=>{DRAGID=+c.dataset.id;c.classList.add('dragging');
+      ev.dataTransfer.effectAllowed='move';try{ev.dataTransfer.setData('text/plain',c.dataset.id);}catch(e){}});
+    c.addEventListener('dragend',()=>{c.classList.remove('dragging');DRAGJUST=true;setTimeout(()=>DRAGJUST=false,350);
+      document.querySelectorAll('.kcol').forEach(k=>k.classList.remove('dropok'));});
+  });
+  document.querySelectorAll('.kcol').forEach(k=>{
+    k.addEventListener('dragover',ev=>{ev.preventDefault();ev.dataTransfer.dropEffect='move';k.classList.add('dropok');});
+    k.addEventListener('dragleave',ev=>{if(!k.contains(ev.relatedTarget))k.classList.remove('dropok');});
+    k.addEventListener('drop',async ev=>{ev.preventDefault();k.classList.remove('dropok');
+      const id=DRAGID;const s=k.dataset.s;DRAGID=null;
+      if(!id||!s)return;
+      const e=ed(id);const cur=e.stage||'Nuevo';if(cur===s)return;
+      e.stage=s;
+      renderPipeline();renderStats();
+      await persistFields(id,{stage:s},null);});
+  });
 }
 document.getElementById('kb').addEventListener('click',e=>{
+  if(DRAGJUST)return;
   const m=e.target.closest('.kmore'); if(m){KEXP[m.dataset.s]=true;renderPipeline();return;}
   const c=e.target.closest('.kcard'); if(c)openDetail(+c.dataset.id);
 });
@@ -638,7 +667,7 @@ async function assignToSearch(cid){
   const s=SEARCHES.find(x=>x.id===curSearchId);if(!s)return;
   const e=ed(cid);e.role=s.role_title||s.client_name;
   if(!e.stage||e.stage==='Nuevo')e.stage='Contactar';
-  await persistEdit(cid,null);
+  await persistFields(cid,{role:e.role,stage:e.stage},null);
   renderSearch();renderStats();
 }
 function pickSearch(id){curSearchId=id;renderSearch();}
