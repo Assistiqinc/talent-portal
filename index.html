@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Assistiq — Talent OS · Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+:root{--ink:#0A0A0A;--teal:#0D9488;--ivory:#F5F1E8;--sand:#E8E4DA;--slate:#71717A;--line:#DDD8CC;--white:#FDFCF9;--amber:#B45309}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--ivory);color:var(--ink);font-family:'DM Sans',-apple-system,sans-serif;font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+.mono{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--slate)}
+.wrap{max-width:1440px;margin:0 auto;padding:0 28px}
+header{border-bottom:1px solid var(--line);padding:30px 0 0;background:var(--ivory)}
+h1{font-family:'Instrument Serif',Georgia,serif;font-size:36px;font-weight:400;letter-spacing:-.01em}
+h1 .dot{color:var(--teal)}
+.sub{color:var(--slate);margin-top:4px;font-size:13.5px}
+.stats{display:flex;gap:0;margin-top:20px;border:1px solid var(--line);background:var(--white);border-radius:3px;overflow:hidden;flex-wrap:wrap}
+.stat{flex:1;min-width:110px;padding:12px 16px;border-right:1px solid var(--line)}
+.stat:last-child{border-right:0}
+.stat b{display:block;font-size:22px;font-weight:500;font-family:'Instrument Serif',Georgia,serif}
+.stat span{display:block;margin-top:2px}
+.tabs{display:flex;gap:2px;margin-top:18px}
+.tab{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;padding:10px 16px;cursor:pointer;color:var(--slate);border-bottom:2px solid transparent;user-select:none}
+.tab.on{color:var(--ink);border-bottom-color:var(--teal)}
+.bar{position:sticky;top:0;z-index:40;background:var(--ivory);border-bottom:1px solid var(--line);padding:12px 0}
+.ctrls{display:flex;gap:9px;flex-wrap:wrap;align-items:center}
+input[type=search],select,input[type=text],input[type=datetime-local],textarea{font-family:inherit;font-size:13.5px;padding:8px 11px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:3px;outline:none}
+input[type=search]{flex:1;min-width:200px}
+input:focus,select:focus,textarea:focus{border-color:var(--teal)}
+.chip{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.09em;text-transform:uppercase;padding:8px 12px;border:1px solid var(--line);background:var(--white);border-radius:3px;cursor:pointer;user-select:none;color:var(--slate)}
+.chip.on{background:var(--ink);color:var(--ivory);border-color:var(--ink)}
+.btn{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;padding:9px 14px;border:1px solid var(--ink);background:var(--ink);color:var(--ivory);border-radius:3px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--ink)}
+.btn.teal{background:var(--teal);border-color:var(--teal)}
+.count{margin-left:auto;white-space:nowrap}
+main{padding:20px 0 120px}
+.view{display:none}.view.on{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px}
+.card{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:16px;cursor:pointer;transition:border-color .12s;position:relative}
+.card:hover{border-color:#c3bcac;box-shadow:0 2px 10px rgba(10,10,10,.05)}
+.card .top{display:flex;gap:12px;align-items:flex-start}
+.av{width:50px;height:50px;border-radius:50%;flex:0 0 50px;object-fit:cover;background:var(--sand);display:block}
+.av.ph{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:14px;color:#8a8578}
+.avL{width:84px;height:84px;border-radius:50%;flex:0 0 84px;object-fit:cover;background:var(--sand)}
+.avL.ph{display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-size:24px;color:#8a8578}
+.nm{font-size:15.5px;font-weight:500;line-height:1.25}
+.hl{color:var(--slate);font-size:12.5px;margin-top:2px}
+.meta{display:flex;flex-wrap:wrap;gap:5px;margin-top:11px}
+.fit{font-family:'JetBrains Mono',monospace;font-size:10.5px;font-weight:500;padding:3px 7px;border-radius:2px;white-space:nowrap;letter-spacing:.06em}
+.f5{background:#0D9488;color:#fff}.f4{background:#CFE9E5;color:#0b5d55}.f3{background:var(--sand);color:#57534E}.f2{background:#F0EDE4;color:#8a8578}.f1{background:#F0EDE4;color:#a5a196}
+.tag{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:3px 6px;border:1px solid var(--line);border-radius:2px;color:var(--slate)}
+.tag.eng{border-color:var(--teal);color:#0b5d55}
+.tag.st{background:var(--ink);border-color:var(--ink);color:var(--ivory)}
+.tag.role{background:var(--teal);border-color:var(--teal);color:#fff}
+.tag.warn{border-color:var(--amber);color:var(--amber)}
+.loc{font-size:11.5px;color:var(--slate);margin-top:9px}
+/* pipeline */
+.kb{display:flex;gap:12px;overflow-x:auto;padding-bottom:14px;align-items:flex-start}
+.kcol{min-width:250px;flex:0 0 250px;background:var(--sand);border-radius:4px;padding:10px}
+.kcol h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#57534E;padding:2px 4px 8px;display:flex;justify-content:space-between}
+.kbody{max-height:62vh;overflow-y:auto;padding-right:2px}
+.kmore{width:100%;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:7px;border:1px dashed #b6b0a2;background:transparent;color:#57534E;border-radius:3px;cursor:pointer;margin-top:2px}
+.kcard{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:9px 11px;margin-bottom:7px;cursor:pointer;font-size:13px}
+.kcard:hover{border-color:var(--teal)}
+.kcard .knm{font-weight:500}
+.kcard .ksb{color:var(--slate);font-size:11px;margin-top:2px}
+/* tables */
+table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px solid var(--line);border-radius:3px;font-size:13.5px}
+.tb th{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--slate);text-align:left;padding:10px 12px;border-bottom:1px solid var(--line)}
+.tb td{padding:10px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+.tb tr:last-child td{border-bottom:0}
+.tb tr.click{cursor:pointer}.tb tr.click:hover td{background:var(--ivory)}
+/* analytics */
+.arow{display:grid;grid-template-columns:190px 1fr 52px;gap:12px;align-items:center;padding:6px 0;font-size:13px}
+.abar{height:16px;background:var(--sand);border-radius:2px;overflow:hidden}
+.abar i{display:block;height:100%;background:var(--teal)}
+.abar i.mut{background:#a8a29a}
+.panelbox{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:20px 22px;margin-bottom:16px}
+.panelbox h3{font-family:'Instrument Serif',Georgia,serif;font-size:20px;font-weight:400;margin-bottom:10px}
+.seclbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);margin:0 0 8px}
+/* overlay */
+.ov{position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:100;display:none;overflow-y:auto;padding:36px 18px}
+.ov.show{display:block}
+.panel{max-width:780px;margin:0 auto;background:var(--white);border-radius:4px;padding:32px}
+.panel h2{font-family:'Instrument Serif',Georgia,serif;font-size:27px;font-weight:400}
+.panel .close{float:right;cursor:pointer;font-size:22px;color:var(--slate);border:0;background:none}
+.row{display:grid;grid-template-columns:145px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.row .k{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);padding-top:3px}
+.editbox{background:var(--ivory);border:1px solid var(--line);border-radius:3px;padding:16px;margin-top:18px}
+.fgrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fgrid label,.f1c label{display:block;font-family:'JetBrains Mono',monospace;font-size:9px;letter-spacing:.11em;text-transform:uppercase;color:var(--slate);margin-bottom:3px}
+.fgrid>div{min-width:0}
+.f1c{margin-top:10px}
+.editbox textarea{width:100%;min-height:64px;resize:vertical}
+.editbox select,.editbox input[type=text],.editbox input[type=datetime-local]{width:100%}
+.ivrow{font-size:12.5px;padding:7px 9px;background:var(--white);border:1px solid var(--line);border-radius:3px;margin-top:6px}
+.empty{padding:50px;text-align:center;color:var(--slate)}
+.chkgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:4px}
+.chkrow{font-size:12.5px;display:flex;gap:8px;align-items:center;cursor:pointer}
+.pov{position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:120;display:none;overflow-y:auto;padding:30px 14px}
+.pov.show{display:block}
+.sheet{max-width:680px;margin:0 auto;background:#fff;padding:46px 50px;border-radius:4px}
+.shead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
+.swm{font-weight:500;font-size:20px;letter-spacing:-.02em}
+.sper{display:flex;gap:20px;align-items:center;margin:24px 0 16px}
+.sper img{width:92px;height:92px;border-radius:50%;object-fit:cover}
+.snm{font-family:'Instrument Serif',Georgia,serif;font-size:29px;line-height:1.1}
+.shl{color:var(--slate);font-size:13.5px;margin-top:4px}
+.srow{display:grid;grid-template-columns:135px 1fr;gap:12px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sk{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--slate);padding-top:2px}
+.sfoot{margin-top:20px;font-size:11.5px;color:var(--slate);line-height:1.65}
+@media print{body *{visibility:hidden}.pov,.pov *{visibility:visible}.pov{position:absolute;inset:0;padding:0;background:#fff;overflow:visible}.sheet{max-width:100%;border-radius:0;padding:20px 6px}.noprint{display:none!important}}
+.msg{font-size:12px;color:var(--teal);margin-left:8px}
+@media(max-width:640px){.wrap{padding:0 14px}h1{font-size:29px}.grid{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:2px}}
+#login input{width:100%;font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:3px;outline:none}
+#login input:focus{border-color:var(--teal)}
+</style></head><body>
+<div id="login" style="position:fixed;inset:0;background:var(--ivory);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
+  <div id="loginbox" style="display:none;max-width:360px;width:100%;background:var(--white);border:1px solid var(--line);border-radius:4px;padding:36px">
+    <div style="font-weight:500;font-size:22px;letter-spacing:-.02em">assistiq<span style="color:var(--teal)">.</span></div>
+    <div class="mono" style="margin-top:6px">Talent OS &middot; acceso del equipo</div>
+    <form id="loginform" style="margin-top:22px">
+      <label class="mono" style="display:block;margin-bottom:4px;font-size:9.5px">Correo</label>
+      <input type="email" id="lg_email" required autocomplete="username" style="margin-bottom:12px">
+      <label class="mono" style="display:block;margin-bottom:4px;font-size:9.5px">Contrase&ntilde;a</label>
+      <input type="password" id="lg_pw" required autocomplete="current-password">
+      <button class="btn teal" type="submit" style="width:100%;margin-top:16px;padding:11px">Entrar</button>
+      <div class="msg" id="loginmsg" style="margin-left:0;margin-top:10px;display:block"></div>
+    </form>
+  </div>
+  <div class="mono" id="loadmsg" style="margin-top:18px"></div>
+</div>
+
+<header><div class="wrap">
+  <h1>Assistiq Talent OS<span class="dot">.</span></h1>
+  <div class="sub" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
+    <span>Bench de operadores · pipeline · entrevistas · cambios compartidos en la nube.</span>
+    <span style="margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+      <span class="mono" id="who"></span>
+      <button class="btn ghost" id="refreshbtn" style="padding:6px 10px">Actualizar</button>
+      <button class="btn ghost" id="logoutbtn" style="padding:6px 10px">Cerrar sesi&oacute;n</button>
+    </span>
+  </div>
+  <div class="stats" id="stats"></div>
+  <div class="tabs" id="tabs">
+    <div class="tab on" data-v="bench">Bench</div>
+    <div class="tab" data-v="pipeline">Pipeline</div>
+    <div class="tab" data-v="hoy">Hoy</div>
+    <div class="tab" data-v="meet">Entrevistas</div>
+    <div class="tab" data-v="ana">Análisis</div>
+    <div class="tab" data-v="data">Datos</div>
+  </div>
+</div></header>
+
+<div class="bar" id="benchbar"><div class="wrap"><div class="ctrls">
+  <input type="search" id="q" placeholder="Buscar nombre, herramienta, industria, ubicación…">
+  <select id="role"><option value="">Todos los roles</option></select>
+  <select id="src"><option value="">Todas las listas</option></select>
+  <select id="stagef"><option value="">Todas las etapas</option></select>
+  <select id="eng"><option value="">Inglés: todos</option><option value="C1">C1 o mejor</option><option value="B2">B2 o mejor</option></select>
+  <select id="fit"><option value="0">Fit: todos</option><option value="5">Solo 5</option><option value="4">4+</option><option value="3">3+</option></select>
+  <select id="sort"><option value="">Orden: fit</option><option value="eng">Inglés</option><option value="yrs">Años exp.</option><option value="name">Nombre A-Z</option><option value="stage">Etapa</option></select>
+  <span class="chip" data-f="phone_experience">Teléfono</span>
+  <span class="chip" data-f="sales_experience">Ventas</span>
+  <span class="chip" id="hasPhoto">Con foto</span>
+  <button class="btn ghost" id="reset">Limpiar</button>
+  <span class="mono count" id="count"></span>
+</div></div></div>
+
+<main><div class="wrap">
+  <div class="view on" id="view-bench"><div class="grid" id="grid"></div><div class="empty" id="empty" style="display:none">Sin resultados con esos filtros.</div></div>
+  <div class="view" id="view-pipeline"><div class="kb" id="kb"></div></div>
+  <div class="view" id="view-hoy"></div>
+  <div class="view" id="view-meet" ></div>
+  <div class="view" id="view-ana"></div>
+  <div class="view" id="view-data"></div>
+</div></main>
+
+<div class="ov" id="ov"><div class="panel" id="panel"></div></div>
+<div class="pov" id="pov"><div class="sheet" id="sheet"></div></div>
+
+<script>
+const SB_URL='https://jbysfyrgesrsgemqervj.supabase.co';
+const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieXNmeXJnZXNyc2dlbXFlcnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjA1MTcsImV4cCI6MjA5ODkzNjUxN30._hz_CWETq8rZ6ggxLsACJ5uY-lAsruYTwqrl4D2d-IA';
+const sb=supabase.createClient(SB_URL,SB_KEY);
+let DATA=[]; let EDITS={}; let byId={}; let ME='';
+const STAGES=['Nuevo','Contactar','Screen de voz','Entrevista','Verificado','Oferta','Contratado','Descartado'];
+const CHK=[['eng','Inglés verificado en llamada'],['loc','Ubicación confirmada'],['ref','Referencias contactadas'],['avail','Disponibilidad confirmada'],['overlap','Empleos activos aclarados']];
+const ENGRANK={'Native':5,'C2':5,'C1 / Advanced':4,'B2 / Intermediate':3,'B1':2,'Basic':1,'Unknown':0};
+const esc=s=>String(s==null?'':s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const ed=id=>EDITS[id]||(EDITS[id]={});
+const edv=id=>EDITS[id]||{};
+const stageOf=d=>edv(d.id).stage||'Nuevo';
+
+function waLink(p){let d=(p||'').replace(/[^0-9]/g,'');if(!d)return'';
+  if(d.startsWith('58')||d.startsWith('57')||d.startsWith('1')&&d.length===11){}
+  else if(d.startsWith('0'))d='58'+d.slice(1);
+  else if(d.length===10)d='58'+d;
+  return 'https://wa.me/'+d;}
+function copyTxt(t,btn){const o=btn.textContent;try{navigator.clipboard.writeText(t);btn.textContent='Copiado ✓';setTimeout(()=>btn.textContent=o,1300);}catch(e){}}
+function chkCount(id){const c=edv(id).checks||{};return CHK.filter(x=>c[x[0]]).length;}
+function firstName(n){const p=(n||'').trim().split(/\s+/)[0]||'';return p.charAt(0).toUpperCase()+p.slice(1).toLowerCase();}
+function msg1(d){const e=edv(d.id);const role=e.role?('para una búsqueda de '+e.role):'para el equipo de operaciones de una empresa';
+ return 'Hola '+firstName(d.name)+', le saluda Nicolás de Assistiq. Encontramos su hoja de vida en Computrabajo y nos llamó la atención su experiencia como '+(d.headline||'asistente bilingüe')+'. Estamos seleccionando un asistente virtual bilingüe (inglés/español) '+role+' en Estados Unidos: trabajo remoto, horario del este y pago en dólares. ¿Tendría 10 minutos esta semana para una llamada corta? También puede responder por este medio. Gracias.';}
+function msgScreen(d){return firstName(d.name)+', para avanzar en el proceso le pedimos un screening corto de inglés: envíenos por aquí 3 notas de voz EN INGLÉS (60-90 segundos cada una) respondiendo:\n\n1) Describe your last job, step by step.\n2) A customer calls upset because the technician never arrived. What do you say?\n3) Tell us about something you had to learn quickly.\n\nNo buscamos perfección: queremos escuchar su fluidez natural. Gracias.';}
+function copyMsg(t,btn){const d=byId[openId];copyTxt(t===1?msg1(d):msgScreen(d),btn);}
+function genProfile(id){
+ const d=byId[id],e=edv(id);
+ const eng=e.verified_english?(e.verified_english+' — verificado en llamada'):(d.english_level+' — según CV, sin verificar');
+ const rows=[['Inglés',eng],['Ubicación',d.location||'—'],['Experiencia',d.years_experience+' años'],
+  ['Disponibilidad',e.availability||'A confirmar'],['Herramientas',(d.tech_tools||[]).slice(0,8).join(' · ')||'—'],
+  ['Encaje',(d.best_fit_roles||[]).join(' · ')||'—']];
+ document.getElementById('sheet').innerHTML=
+  '<div class="shead"><div class="swm">assistiq<span style="color:var(--teal)">.</span></div><div class="mono">Perfil de candidato · '+new Date().toISOString().slice(0,10)+'</div></div>'
+  +'<div class="sper">'+(d.photo?'<img src="'+d.photo+'">':'')+'<div><div class="snm">'+esc(d.name)+'</div><div class="shl">'+esc(d.headline||'')+'</div></div></div>'
+  +rows.map(r=>'<div class="srow"><div class="sk">'+r[0]+'</div><div>'+esc(r[1])+'</div></div>').join('')
+  +'<div class="srow"><div class="sk">Resumen</div><div>'+esc(d.strengths||'')+'</div></div>'
+  +'<div class="sfoot">Operador gestionado por <b>Assistiq VA</b> — supervisor dedicado, banco de reemplazo de 3 operadores y SLA de reemplazo de 5 días hábiles. Sin datos de contacto directo: la comunicación se coordina vía Assistiq.<br>gabriel@assistiq.io · assistiq.io</div>'
+  +'<div class="noprint" style="margin-top:24px;display:flex;gap:8px"><button class="btn teal" onclick="window.print()">Imprimir / guardar PDF</button><button class="btn ghost" onclick="document.getElementById(\'pov\').classList.remove(\'show\')">Cerrar</button></div>';
+ document.getElementById('pov').classList.add('show');
+}
+const filters={phone_experience:false,sales_experience:false}; let photoOnly=false; let curView='bench';
+
+/* ---------- header stats ---------- */
+function renderStats(){
+  const ready=DATA.filter(d=>d.fit_score>=4&&ENGRANK[d.english_level]>=4&&d.phone_experience).length;
+  const inPipe=DATA.filter(d=>!['Nuevo','Descartado'].includes(stageOf(d))).length;
+  const ivs=allInterviews(); const up=ivs.filter(x=>x.when&&x.when>=todayISO()).length;
+  const st=[[DATA.length,'Candidatos'],[ready,'Listos (C1+, fit 4+, tel)'],[inPipe,'En pipeline'],
+   [DATA.filter(d=>stageOf(d)==='Verificado').length,'Verificados'],[up,'Entrevistas próximas'],
+   [Object.keys(EDITS).length,'Con avances']];
+  document.getElementById('stats').innerHTML=st.map(s=>`<div class="stat"><b>${s[0]}</b><span class="mono">${s[1]}</span></div>`).join('');
+}
+function todayISO(){const t=new Date();return t.toISOString().slice(0,16);}
+function allInterviews(){
+  const out=[];
+  for(const id in EDITS){const e=EDITS[id];(e.interviews||[]).forEach(iv=>out.push({id:+id,...iv}));}
+  return out;
+}
+
+/* ---------- dropdowns ---------- */
+function populateFilters(){
+document.getElementById('role').innerHTML='<option value="">Todos los roles</option>'+[...new Set(DATA.flatMap(d=>d.best_fit_roles))].sort().map(r=>`<option>${esc(r)}</option>`).join('');
+document.getElementById('src').innerHTML='<option value="">Todas las listas</option>'+[...new Set(DATA.map(d=>d.source))].sort().map(r=>`<option>${esc(r)}</option>`).join('');
+document.getElementById('stagef').innerHTML='<option value="">Todas las etapas</option>'+STAGES.map(s=>`<option>${s}</option>`).join('');
+}
+
+/* ---------- bench ---------- */
+function match(d){
+  const e=edv(d.id);
+  const q=document.getElementById('q').value.trim().toLowerCase();
+  if(q){const hay=[d.name,d.headline,d.location,d.education,d.strengths,d.english_level,(d.tech_tools||[]).join(' '),(d.industries||[]).join(' '),(d.best_fit_roles||[]).join(' '),d.source,e.notes||'',e.role||''].join(' ').toLowerCase();
+    if(!q.split(/\s+/).every(t=>hay.includes(t)))return false;}
+  const r=document.getElementById('role').value;if(r&&!d.best_fit_roles.includes(r))return false;
+  const sv=document.getElementById('src').value;if(sv&&d.source!==sv)return false;
+  const sf=document.getElementById('stagef').value;if(sf&&stageOf(d)!==sf)return false;
+  const ev=document.getElementById('eng').value;
+  if(ev==='C1'&&ENGRANK[d.english_level]<4)return false;
+  if(ev==='B2'&&ENGRANK[d.english_level]<3)return false;
+  if(d.fit_score<+document.getElementById('fit').value)return false;
+  for(const k in filters)if(filters[k]&&!d[k])return false;
+  if(photoOnly&&!d.photo)return false;
+  return true;
+}
+function renderBench(){
+  const list=DATA.filter(match);
+  const sv=document.getElementById('sort').value;
+  if(sv==='eng')list.sort((a,b)=>ENGRANK[b.english_level]-ENGRANK[a.english_level]||b.fit_score-a.fit_score);
+  else if(sv==='yrs')list.sort((a,b)=>b.years_experience-a.years_experience);
+  else if(sv==='name')list.sort((a,b)=>a.name.localeCompare(b.name));
+  else if(sv==='stage')list.sort((a,b)=>STAGES.indexOf(stageOf(a))-STAGES.indexOf(stageOf(b))||b.fit_score-a.fit_score);
+  document.getElementById('count').textContent=list.length+' de '+DATA.length;
+  document.getElementById('empty').style.display=list.length?'none':'block';
+  document.getElementById('grid').innerHTML=list.map(d=>{
+    const e=edv(d.id); const st=stageOf(d);
+    const ve=e.verified_english?`<span class="tag eng">✓ ${esc(e.verified_english)}</span>`:'';
+    return `<div class="card" data-id="${d.id}">
+      <div class="top">
+        ${d.photo?`<img class="av" src="${d.photo}" alt="">`:`<div class="av ph">${esc(d.ini)}</div>`}
+        <div style="min-width:0">
+          <div class="nm">${esc(d.name)}</div>
+          <div class="hl">${esc(d.headline||'—')}</div>
+        </div>
+      </div>
+      <div class="meta">
+        ${st!=='Nuevo'?`<span class="tag st">${st}</span>`:''}
+        ${e.role?`<span class="tag role">${esc(e.role)}</span>`:''}
+        <span class="fit f${d.fit_score}">FIT ${d.fit_score}</span>
+        <span class="tag eng">${esc(d.english_level)}</span>${ve}
+        <span class="tag">${d.years_experience} a</span>
+        ${d.phone_experience?'<span class="tag">Tel</span>':''}
+        ${(d.tech_tools||[]).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
+      </div>
+      <div class="loc">${esc(d.location||'Ubicación no indicada')}${e.notes?' · <b>nota</b>':''}</div>
+    </div>`;}).join('');
+}
+document.getElementById('grid').addEventListener('click',e=>{
+  const c=e.target.closest('.card'); if(c)openDetail(+c.dataset.id);
+});
+
+/* ---------- detail + edit ---------- */
+let openId=null;
+function openDetail(id){
+  openId=id; const d=byId[id]; const e=edv(id);
+  const R=(k,v)=>v?`<div class="row"><div class="k">${k}</div><div>${v}</div></div>`:'';
+  const ivs=(e.interviews||[]).map((iv,i)=>`<div class="ivrow"><b>${esc(iv.when||'sin fecha')}</b> · ${esc(iv.who||'')} · ${esc(iv.type||'')} ${iv.result?'· <b>'+esc(iv.result)+'</b>':''}${iv.notes?'<br>'+esc(iv.notes):''}</div>`).join('')||'<div class="ivrow" style="color:var(--slate)">Sin entrevistas registradas.</div>';
+  document.getElementById('panel').innerHTML=`
+    <button class="close" onclick="closeOv()">&times;</button>
+    <div style="display:flex;gap:16px;align-items:center;margin-bottom:6px">
+      ${d.photo?`<img class="avL" src="${d.photo}">`:`<div class="avL ph">${esc(d.ini)}</div>`}
+      <div><h2>${esc(d.name)}</h2><div class="hl" style="margin-top:3px">${esc(d.headline||'')}</div>
+      <div class="meta" style="margin-top:7px"><span class="fit f${d.fit_score}">FIT ${d.fit_score}</span><span class="tag eng">${esc(d.english_level)}</span><span class="tag">${esc(d.source)}</span></div>
+      <div style="margin-top:10px;display:flex;gap:7px;flex-wrap:wrap">
+        ${waLink(d.phone)?`<a class="btn teal" style="text-decoration:none" target="_blank" href="${waLink(d.phone)}">WhatsApp</a>`:''}
+        ${d.email?`<a class="btn ghost" style="text-decoration:none" href="mailto:${esc(d.email)}">Email</a>`:''}
+        ${d.email?`<button class="btn ghost" onclick="copyTxt('${esc(d.email)}',this)">Copiar email</button>`:''}
+        <button class="btn ghost" onclick="copyMsg(1,this)">Copiar 1er mensaje</button>
+        <button class="btn ghost" onclick="copyMsg(2,this)">Copiar screen de voz</button>
+        <button class="btn ghost" onclick="genProfile(openId)">Perfil para cliente</button>
+      </div></div>
+    </div>
+    ${R('Email',d.email?`<a href="mailto:${esc(d.email)}" style="color:var(--teal)">${esc(d.email)}</a>`:'')}
+    ${R('Teléfono',esc(d.phone))}
+    ${R('Ubicación',esc(d.location))}
+    ${R('Inglés (CV)',esc(d.english_evidence))}
+    ${R('Herramientas',(d.tech_tools||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join(' '))}
+    ${R('Roles',(d.best_fit_roles||[]).map(t=>`<span class="tag">${esc(t)}</span>`).join(' '))}
+    ${R('Fortalezas',esc(d.strengths))}
+    ${R('Alertas',d.concerns?`<span style="color:var(--amber)">${esc(d.concerns)}</span>`:'')}
+    ${R('Archivo CV',`<span class="mono" style="text-transform:none;letter-spacing:0;font-size:11px">${esc(d.file)}</span>`)}
+
+    <div class="editbox">
+      <div class="seclbl">Gestión — se guarda al cambiar <span class="msg" id="f_msg"></span></div>
+      <div class="fgrid">
+        <div><label>Etapa</label><select id="f_stage">${STAGES.map(s=>`<option ${stageOf(d)===s?'selected':''}>${s}</option>`).join('')}</select></div>
+        <div><label>Rol / búsqueda</label><input type="text" id="f_role" value="${esc(e.role||'')}" placeholder="p.ej. Garage Doors"></div>
+        <div><label>Inglés verificado (screen)</label><select id="f_veng">${['','B1','B2','C1','C2'].map(x=>`<option ${e.verified_english===x?'selected':''}>${x}</option>`).join('')}</select></div>
+        <div><label>Disponibilidad</label><input type="text" id="f_avail" value="${esc(e.availability||'')}" placeholder="inmediata / 2 semanas / part-time"></div>
+        <div><label>Expectativa salarial</label><input type="text" id="f_salary" value="${esc(e.salary||'')}" placeholder="USD/mes"></div>
+        <div><label>Score llamada (1-5)</label><select id="f_score">${['','1','2','3','4','5'].map(x=>`<option ${String(e.call_score||'')===x?'selected':''}>${x}</option>`).join('')}</select></div>
+        <div><label>Próxima acción</label><input type="text" id="f_na" value="${esc(e.next_action||'')}" placeholder="llamar / pedir referencias / enviar al cliente"></div>
+        <div><label>Fecha de la acción</label><input type="text" id="f_nad" value="${esc(e.next_date||'')}" placeholder="AAAA-MM-DD"></div>
+      </div>
+      <div class="f1c"><label>Notas</label><textarea id="f_notes">${esc(e.notes||'')}</textarea></div>
+
+      <div class="seclbl" style="margin-top:14px">Verificación · <span id="chkcount">${chkCount(d.id)}</span>/5</div>
+      <div class="chkgrid">${CHK.map(c=>`<label class="chkrow"><input type="checkbox" class="chkbox" data-k="${c[0]}" ${e.checks&&e.checks[c[0]]?'checked':''}> ${c[1]}</label>`).join('')}</div>
+
+      <div class="seclbl" style="margin-top:14px">Entrevistas</div>
+      ${ivs}
+      <div class="fgrid" style="margin-top:10px">
+        <div><label>Fecha y hora</label><input type="datetime-local" id="iv_when"></div>
+        <div><label>Entrevistador</label><input type="text" id="iv_who" placeholder="Gabriel / Nicolás"></div>
+        <div><label>Tipo</label><select id="iv_type"><option>Screen de voz</option><option>Entrevista técnica</option><option>Entrevista con cliente</option><option>Referencias</option></select></div>
+        <div><label>Resultado</label><select id="iv_res"><option></option><option>Pendiente</option><option>Pasó</option><option>No pasó</option><option>No se presentó</option></select></div>
+      </div>
+      <div class="f1c"><label>Notas de la entrevista</label><textarea id="iv_notes" style="min-height:44px"></textarea></div>
+      <div style="margin-top:10px"><button class="btn teal" onclick="addIv()">Registrar entrevista</button><span class="msg" id="ivmsg"></span></div>
+    </div>`;
+  ['f_stage','f_role','f_veng','f_avail','f_salary','f_score','f_notes','f_na','f_nad'].forEach(fid=>{
+    document.getElementById(fid).addEventListener('change',saveFields);
+  });
+  document.querySelectorAll('.chkbox').forEach(cb=>cb.addEventListener('change',async()=>{
+    const e2=ed(openId); e2.checks=e2.checks||{}; e2.checks[cb.dataset.k]=cb.checked;
+    const cc=document.getElementById('chkcount'); if(cc)cc.textContent=chkCount(openId);
+    await persistEdit(openId,document.getElementById('f_msg'));
+    renderStats();
+  }));
+  document.getElementById('ov').classList.add('show');
+}
+async function persistEdit(id,msgEl){
+  const e=edv(id);
+  const row={candidate_id:+id,stage:e.stage||null,role:e.role||null,verified_english:e.verified_english||null,
+    availability:e.availability||null,salary:e.salary||null,call_score:String(e.call_score||'')||null,
+    notes:e.notes||null,next_action:e.next_action||null,next_date:e.next_date||null,
+    checks:e.checks||{},updated_by:ME,updated_at:new Date().toISOString()};
+  const {error}=await sb.from('talent_edits').upsert(row,{onConflict:'candidate_id'});
+  if(error){if(msgEl){msgEl.textContent='⚠ No se guardó: '+error.message;} return false;}
+  return true;
+}
+async function saveFields(){
+  const e=ed(openId);
+  e.stage=document.getElementById('f_stage').value;
+  e.role=document.getElementById('f_role').value.trim();
+  e.verified_english=document.getElementById('f_veng').value;
+  e.availability=document.getElementById('f_avail').value.trim();
+  e.salary=document.getElementById('f_salary').value.trim();
+  e.call_score=document.getElementById('f_score').value;
+  e.notes=document.getElementById('f_notes').value.trim();
+  e.next_action=document.getElementById('f_na').value.trim();
+  e.next_date=document.getElementById('f_nad').value.trim();
+  const m=document.getElementById('f_msg');
+  const ok=await persistEdit(openId,m);
+  if(ok&&m){
+    if(e.stage==='Verificado'&&chkCount(openId)<5){m.textContent='⚠ Verificado con '+chkCount(openId)+'/5 checks';}
+    else{m.textContent='Guardado ✓';setTimeout(()=>{if(m)m.textContent='';},1400);}
+  }
+  renderStats();
+}
+async function addIv(){
+  const e=ed(openId); e.interviews=e.interviews||[];
+  const iv={when:document.getElementById('iv_when').value,who:document.getElementById('iv_who').value.trim(),
+            type:document.getElementById('iv_type').value,result:document.getElementById('iv_res').value,
+            notes:document.getElementById('iv_notes').value.trim()};
+  if(!iv.when&&!iv.notes){document.getElementById('ivmsg').textContent='Pon al menos fecha o nota';return;}
+  const {error}=await sb.from('talent_interviews').insert({candidate_id:+openId,when_at:iv.when||null,
+    who:iv.who||null,type:iv.type||null,result:iv.result||null,notes:iv.notes||null,created_by:ME});
+  if(error){document.getElementById('ivmsg').textContent='⚠ No se guardó: '+error.message;return;}
+  e.interviews.push(iv);
+  if((edv(openId).stage||'Nuevo')==='Nuevo'||edv(openId).stage==='Contactar'){
+    e.stage=iv.type==='Screen de voz'?'Screen de voz':'Entrevista';
+    await persistEdit(openId,null);
+  }
+  openDetail(openId); renderStats();
+}
+function closeOv(){document.getElementById('ov').classList.remove('show');renderView();}
+document.getElementById('ov').addEventListener('click',e=>{if(e.target.id==='ov')closeOv();});
+document.getElementById('pov').addEventListener('click',e=>{if(e.target.id==='pov')e.target.classList.remove('show');});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeOv();});
+
+/* ---------- pipeline ---------- */
+let KEXP={};
+function renderPipeline(){
+  const cols=STAGES.map(s=>{
+    const g=DATA.filter(d=>stageOf(d)===s);
+    const lim=KEXP[s]?g.length:12;
+    const cards=g.slice(0,lim).map(d=>{
+      const e=edv(d.id);
+      const next=(e.interviews||[]).filter(iv=>iv.when&&iv.when>=todayISO()).sort((a,b)=>a.when<b.when?-1:1)[0];
+      return `<div class="kcard" data-id="${d.id}"><div class="knm">${esc(d.name)}</div>
+        <div class="ksb">${esc(d.english_level)} · fit ${d.fit_score}${e.role?' · '+esc(e.role):''}${next?'<br>&#128197; '+esc(next.when.replace('T',' ')):''}${e.next_action?'<br>&#9873; '+esc(e.next_action)+(e.next_date?' · '+esc(e.next_date):''):''}</div></div>`;
+    }).join('')||'<div class="ksb" style="padding:6px;color:#8a8578">—</div>';
+    const more=g.length>lim?`<button class="kmore" data-s="${s}">Ver ${g.length-lim} más</button>`:'';
+    return `<div class="kcol"><h4>${s}<span>${g.length}</span></h4><div class="kbody">${cards}${more}</div></div>`;
+  }).join('');
+  document.getElementById('kb').innerHTML=cols;
+}
+document.getElementById('kb').addEventListener('click',e=>{
+  const m=e.target.closest('.kmore'); if(m){KEXP[m.dataset.s]=true;renderPipeline();return;}
+  const c=e.target.closest('.kcard'); if(c)openDetail(+c.dataset.id);
+});
+
+/* ---------- hoy ---------- */
+function renderHoy(){
+  const today=new Date().toISOString().slice(0,10);
+  const active=d=>!['Contratado','Descartado'].includes(stageOf(d));
+  const due=DATA.filter(d=>{const e=edv(d.id);return e.next_date&&e.next_date<=today&&active(d);});
+  const soon=DATA.filter(d=>{const e=edv(d.id);return e.next_date&&e.next_date>today&&active(d);}).sort((a,b)=>edv(a.id).next_date<edv(b.id).next_date?-1:1).slice(0,15);
+  const ivs=allInterviews().filter(x=>x.when&&x.when.slice(0,10)>=today).sort((a,b)=>a.when<b.when?-1:1).slice(0,15);
+  const noNext=DATA.filter(d=>['Contactar','Screen de voz','Entrevista'].includes(stageOf(d))&&!edv(d.id).next_date&&!(edv(d.id).interviews||[]).some(iv=>iv.when&&iv.when>=todayISO()));
+  const row=d=>{const e=edv(d.id);return `<tr class="click" data-id="${d.id}"><td><b>${esc(d.name)}</b></td><td>${stageOf(d)}</td><td>${esc(e.role||'')}</td><td>${esc(e.next_action||'—')}</td><td>${esc(e.next_date||'')}</td></tr>`;};
+  const tb=(g,emptyTxt)=>g.length?`<table class="tb"><tr><th>Candidato</th><th>Etapa</th><th>Búsqueda</th><th>Próxima acción</th><th>Fecha</th></tr>${g.map(row).join('')}</table>`:`<div class="hl">${emptyTxt}</div>`;
+  const ivrow=x=>{const d=byId[x.id];return `<tr class="click" data-id="${x.id}"><td><b>${esc(d?d.name:'?')}</b></td><td>${esc(x.when.replace('T',' '))}</td><td>${esc(x.type||'')}</td><td>${esc(x.who||'')}</td></tr>`;};
+  document.getElementById('view-hoy').innerHTML=`
+    <div class="panelbox"><h3>Acciones vencidas o para hoy (${due.length})</h3>${tb(due,'Nada vencido. Bien.')}</div>
+    <div class="panelbox"><h3>Entrevistas agendadas (${ivs.length})</h3>${ivs.length?`<table class="tb"><tr><th>Candidato</th><th>Cuándo</th><th>Tipo</th><th>Entrevistador</th></tr>${ivs.map(ivrow).join('')}</table>`:'<div class="hl">Sin entrevistas próximas.</div>'}</div>
+    <div class="panelbox"><h3>Próximas acciones programadas (${soon.length})</h3>${tb(soon,'Ninguna programada.')}</div>
+    <div class="panelbox"><h3>En proceso SIN próxima acción (${noNext.length})</h3>
+      <div class="hl" style="margin-bottom:8px">Candidatos activos que nadie está moviendo — asígnales acción y fecha o van a morir en el pipeline.</div>${tb(noNext,'Todos tienen acción asignada.')}</div>`;
+  document.getElementById('view-hoy').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
+}
+
+/* ---------- meetings ---------- */
+function renderMeet(){
+  const ivs=allInterviews().sort((a,b)=>(a.when||'9999')<(b.when||'9999')?-1:1);
+  const now=todayISO();
+  const up=ivs.filter(x=>x.when&&x.when>=now), past=ivs.filter(x=>!(x.when&&x.when>=now));
+  const row=x=>{const d=byId[x.id];return `<tr class="click" data-id="${x.id}"><td><b>${esc(d?d.name:'?')}</b></td><td>${esc((x.when||'—').replace('T',' '))}</td><td>${esc(x.who||'—')}</td><td>${esc(x.type||'')}</td><td>${esc(x.result||'')}</td><td>${esc(x.notes||'')}</td></tr>`;};
+  const tb=(rows,emptyTxt)=>rows.length?`<table class="tb"><tr><th>Candidato</th><th>Cuándo</th><th>Entrevistador</th><th>Tipo</th><th>Resultado</th><th>Notas</th></tr>${rows.map(row).join('')}</table>`:`<div class="empty">${emptyTxt}</div>`;
+  document.getElementById('view-meet').innerHTML=`
+    <div class="panelbox"><h3>Próximas (${up.length})</h3>${tb(up,'Nada agendado. Abre un candidato y registra la entrevista.')}</div>
+    <div class="panelbox"><h3>Historial (${past.length})</h3>${tb(past,'Sin entrevistas registradas todavía.')}</div>`;
+  document.getElementById('view-meet').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
+}
+
+/* ---------- analytics ---------- */
+function bars(items,max){
+  return items.map(([lab,n,mut])=>`<div class="arow"><div>${esc(lab)}</div><div class="abar"><i class="${mut?'mut':''}" style="width:${max?Math.round(n/max*100):0}%"></i></div><div style="text-align:right"><b>${n}</b></div></div>`).join('');
+}
+function renderAna(){
+  const stage=STAGES.map(s=>[s,DATA.filter(d=>stageOf(d)===s).length]);
+  const smax=Math.max(...stage.map(x=>x[1]),1);
+  const eng=['Native','C2','C1 / Advanced','B2 / Intermediate','B1','Basic','Unknown'].map(k=>[k,DATA.filter(d=>d.english_level===k).length,ENGRANK[k]<4]);
+  const emax=Math.max(...eng.map(x=>x[1]),1);
+  const roles=[...new Set(DATA.flatMap(d=>d.best_fit_roles))].map(r=>{
+    const p=DATA.filter(d=>d.best_fit_roles.includes(r));
+    return [r,p.filter(d=>d.fit_score>=4&&ENGRANK[d.english_level]>=4&&d.phone_experience).length];
+  }).sort((a,b)=>b[1]-a[1]);
+  const rmax=Math.max(...roles.map(x=>x[1]),1);
+  const src=[...new Set(DATA.map(d=>d.source))].map(s=>[s,DATA.filter(d=>d.source===s).length]);
+  const scr=allInterviews().filter(x=>x.type==='Screen de voz');
+  const pass=scr.filter(x=>x.result==='Pasó').length, fail=scr.filter(x=>x.result==='No pasó').length;
+  document.getElementById('view-ana').innerHTML=`
+    <div class="panelbox"><h3>Embudo por etapa</h3>${bars(stage,smax)}</div>
+    <div class="panelbox"><h3>Cobertura de roles — candidatos LISTOS (fit 4+, C1+, teléfono)</h3>${bars(roles,rmax)}
+      <div class="hl" style="margin-top:8px">Un rol con menos de 3 listos no soporta la garantía de warm bench de 3 operadores.</div></div>
+    <div class="panelbox"><h3>Inglés declarado en CV</h3>${bars(eng,emax)}
+      <div class="hl" style="margin-top:8px">Los niveles B2 e inferiores (barras grises) son autodeclarados sin certificar — requieren screen de voz antes de contar como bilingües.</div></div>
+    <div class="panelbox"><h3>Screens de voz</h3>
+      <div class="arow"><div>Realizados</div><div class="abar"><i style="width:${scr.length?100:0}%"></i></div><div style="text-align:right"><b>${scr.length}</b></div></div>
+      <div class="arow"><div>Pasaron</div><div class="abar"><i style="width:${scr.length?Math.round(pass/Math.max(scr.length,1)*100):0}%"></i></div><div style="text-align:right"><b>${pass}</b></div></div>
+      <div class="arow"><div>No pasaron</div><div class="abar"><i class="mut" style="width:${scr.length?Math.round(fail/Math.max(scr.length,1)*100):0}%"></i></div><div style="text-align:right"><b>${fail}</b></div></div></div>
+    <div class="panelbox"><h3>Origen</h3>${bars(src,Math.max(...src.map(x=>x[1]),1))}</div>`;
+}
+
+/* ---------- data quality + export ---------- */
+function norm(s){return (s||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z ]/g,'').trim();}
+function renderData(){
+  const nm={},em={};
+  DATA.forEach(d=>{const n=norm(d.name);if(n){(nm[n]=nm[n]||[]).push(d);}const e2=(d.email||'').toLowerCase();if(e2){(em[e2]=em[e2]||[]).push(d);}});
+  const dupN=Object.values(nm).filter(g=>g.length>1), dupE=Object.values(em).filter(g=>g.length>1);
+  const noC=DATA.filter(d=>!d.email&&!d.phone);
+  const noE=DATA.filter(d=>!d.email&&d.phone);
+  const usph=DATA.filter(d=>{const p=(d.phone||'').trim();return p.startsWith('+1')||p.startsWith('1 ')||/^\(\d{3}\)/.test(p)||p.includes('/ +1')||p.includes('+1 ');});
+  const flag=DATA.filter(d=>/verificar|no declara|sin cv|no es un cv|mistyped|mal escrito|different name|otra persona/i.test(d.concerns||''));
+  const li=g=>g.map(d=>`<tr class="click" data-id="${d.id}"><td><b>${esc(d.name)}</b></td><td>${esc(d.email||'—')}</td><td>${esc(d.phone||'—')}</td><td>${esc((d.concerns||'').slice(0,90))}</td></tr>`).join('');
+  const sec=(t,g)=>`<div class="panelbox"><h3>${t} (${g.length})</h3>${g.length?`<table class="tb"><tr><th>Nombre</th><th>Email</th><th>Teléfono</th><th>Alerta</th></tr>${li(g)}</table>`:'<div class="hl">Nada pendiente.</div>'}</div>`;
+  document.getElementById('view-data').innerHTML=`
+    <div class="panelbox"><h3>Datos compartidos</h3>
+      <div class="hl" style="margin-bottom:12px">Todo se guarda autom&aacute;ticamente en la nube y lo ven los cuatro usuarios del equipo. Hay <b>${Object.keys(EDITS).length}</b> candidatos con avances. Usa <b>Actualizar</b> (arriba a la derecha) para traer cambios hechos por otros.</div>
+      <button class="btn ghost" onclick="expCsv()">Exportar todo (CSV)</button>
+      <span class="msg" id="datamsg"></span></div>
+    ${sec('Posibles duplicados por nombre',dupN.flat())}
+    ${dupE.length?sec('Duplicados por email',dupE.flat()):''}
+    ${sec('Sin ningún contacto',noC)}
+    ${sec('Solo teléfono, sin email',noE)}
+    ${sec('Teléfono de EE.UU. — verificar residencia',usph)}
+    ${sec('Alertas de identidad / ubicación',flag)}`;
+  document.getElementById('view-data').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
+}
+function dl(name,text,type){const u=URL.createObjectURL(new Blob([text],{type}));const a=document.createElement('a');a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
+function expCsv(){
+  const cols=['id','name','source','email','phone','location','headline','english_level','years_experience','fit_score','best_fit_roles','tech_tools'];
+  const ecols=['stage','role','verified_english','availability','salary','call_score','notes'];
+  const q=v=>'"'+String(Array.isArray(v)?v.join('; '):(v==null?'':v)).replace(/"/g,'""')+'"';
+  const rows=[cols.concat(ecols,['entrevistas']).join(',')];
+  DATA.forEach(d=>{const e=edv(d.id);
+    rows.push(cols.map(c=>q(d[c])).concat(ecols.map(c=>q(e[c]||'')),[q((e.interviews||[]).map(iv=>`${iv.when||''} ${iv.type||''} ${iv.result||''}`).join(' | '))]).join(','));});
+  dl('assistiq_bench_completo.csv','﻿'+rows.join('\n'),'text/csv;charset=utf-8');
+}
+
+/* ---------- tabs & wiring ---------- */
+function renderView(){
+  if(curView==='bench')renderBench();
+  else if(curView==='pipeline')renderPipeline();
+  else if(curView==='hoy')renderHoy();
+  else if(curView==='meet')renderMeet();
+  else if(curView==='ana')renderAna();
+  else if(curView==='data')renderData();
+}
+document.getElementById('tabs').addEventListener('click',e=>{
+  const t=e.target.closest('.tab');if(!t)return;
+  curView=t.dataset.v;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('on',x===t));
+  document.querySelectorAll('.view').forEach(x=>x.classList.toggle('on',x.id==='view-'+curView));
+  document.getElementById('benchbar').style.display=curView==='bench'?'block':'none';
+  renderView();
+});
+['q','role','src','stagef','eng','fit','sort'].forEach(id=>document.getElementById(id).addEventListener('input',renderBench));
+document.querySelectorAll('.chip[data-f]').forEach(c=>c.addEventListener('click',()=>{filters[c.dataset.f]=!filters[c.dataset.f];c.classList.toggle('on',filters[c.dataset.f]);renderBench();}));
+document.getElementById('hasPhoto').addEventListener('click',function(){photoOnly=!photoOnly;this.classList.toggle('on',photoOnly);renderBench();});
+document.getElementById('reset').addEventListener('click',()=>{
+  document.getElementById('q').value='';['role','src','stagef','eng'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fit').value='0';document.getElementById('sort').value='';for(const k in filters)filters[k]=false;photoOnly=false;
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));renderBench();
+});
+/* ---------- auth + boot ---------- */
+async function fetchAll(){
+  const [c,e2,iv]=await Promise.all([
+    sb.from('talent_candidates').select('data').order('id'),
+    sb.from('talent_edits').select('*'),
+    sb.from('talent_interviews').select('*').order('id')
+  ]);
+  if(c.error)throw c.error; if(e2.error)throw e2.error; if(iv.error)throw iv.error;
+  DATA=(c.data||[]).map(r=>r.data);
+  byId=Object.fromEntries(DATA.map(d=>[d.id,d]));
+  EDITS={};
+  (e2.data||[]).forEach(r=>{EDITS[r.candidate_id]={stage:r.stage||undefined,role:r.role||undefined,
+    verified_english:r.verified_english||undefined,availability:r.availability||undefined,
+    salary:r.salary||undefined,call_score:r.call_score||undefined,notes:r.notes||undefined,
+    next_action:r.next_action||undefined,next_date:r.next_date||undefined,checks:r.checks||{}};});
+  (iv.data||[]).forEach(r=>{const e=ed(r.candidate_id);e.interviews=e.interviews||[];
+    e.interviews.push({when:(r.when_at||'').slice(0,16),who:r.who||'',type:r.type||'',result:r.result||'',notes:r.notes||''});});
+}
+async function boot(){
+  const g=document.getElementById('loadmsg');
+  try{
+    g.textContent='Cargando candidatos…';
+    await fetchAll();
+    if(!DATA.length){g.textContent='Tu correo no está autorizado para ver los datos. Escríbele a gabriel@assistiq.io.';
+      document.getElementById('loginbox').style.display='block';return;}
+    populateFilters();
+    renderStats();renderView();
+    document.getElementById('who').textContent=ME;
+    document.getElementById('login').style.display='none';
+    g.textContent='';
+  }catch(err){g.textContent='Error cargando datos: '+err.message;
+    document.getElementById('loginbox').style.display='block';}
+}
+document.getElementById('loginform').addEventListener('submit',async ev=>{
+  ev.preventDefault();
+  const m=document.getElementById('loginmsg');m.textContent='Entrando…';
+  const {data,error}=await sb.auth.signInWithPassword({
+    email:document.getElementById('lg_email').value.trim(),
+    password:document.getElementById('lg_pw').value});
+  if(error){m.textContent='Credenciales incorrectas.';return;}
+  ME=data.session.user.email;m.textContent='';
+  await boot();
+});
+document.getElementById('logoutbtn').addEventListener('click',async()=>{await sb.auth.signOut();location.reload();});
+document.getElementById('refreshbtn').addEventListener('click',async function(){
+  this.textContent='…';
+  try{await fetchAll();renderStats();renderView();}catch(e){}
+  this.textContent='Actualizar';});
+(async()=>{
+  const {data:{session}}=await sb.auth.getSession();
+  if(session){ME=session.user.email;await boot();}
+  else document.getElementById('loginbox').style.display='block';
+})();
+</script></body></html>
