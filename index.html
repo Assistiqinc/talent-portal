@@ -557,23 +557,64 @@ function expCsv(){
 
 /* ---------- búsquedas (client matching) ---------- */
 function engRankOf(d){const e=edv(d.id);if(e.verified_english){return ({B1:2,B2:3,C1:4,C2:5})[e.verified_english]||0;}return ENGRANK[d.english_level]||0;}
+const SYN={
+  'techos':['roofing','roof','roofer'],'roofing':['techos'],
+  'cercas':['fence','fences','fencing'],'fence':['cercas'],'fences':['cercas'],
+  'ventanas':['window','windows','glazing'],'windows':['ventanas'],
+  'garage':['garage','portón','overhead','door'],'puertas':['garage','door'],
+  'dispatch':['despacho','dispatcher','dispatching'],'despacho':['dispatch','dispatcher'],
+  'scheduling':['agenda','citas','appointment','scheduler'],'citas':['scheduling','appointment'],
+  'ventas':['sales','outbound','closer'],'sales':['ventas','outbound'],
+  'cobranza':['collections','billing'],'collections':['cobranza'],
+  'seguros':['insurance','csr','policy'],'insurance':['seguros'],
+  'inmobiliaria':['real estate','realtor','isa','leasing'],'real':['inmobiliaria','realtor','isa'],
+  'plomería':['plumbing','hvac'],'plumbing':['plomería','hvac'],
+  'hvac':['plumbing','electrical','contractor'],
+  'home':['hvac','plumbing','roofing','contractor','field','remodeling'],
+  'mudanzas':['moving','movers'],'moving':['mudanzas'],
+  'logística':['logistics','freight','trucking'],'logistics':['logística','freight','trucking']};
+const TOOLFAM=[
+  ['workiz','housecall','jobber','servicetitan','fieldedge','field service'],
+  ['ringcentral','openphone','dialpad','aircall','callrail','8x8','vonage','nextiva','aloware','voip'],
+  ['follow up boss','kvcore','lofty','boomtown','cinc','sierra'],
+  ['appfolio','buildium','rent manager','yardi','doorloop','tenantcloud'],
+  ['hubspot','salesforce','zoho','pipedrive','gohighlevel','monday','crm'],
+  ['ams360','applied epic','ezlynx','hawksoft','nowcerts']];
 function matchesFor(s){
   const req=s.min_english==='B2'?3:4;
   const tools=(s.tools||'').split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
-  const kws=[...new Set(((s.vertical||'')+' '+(s.role_title||'')).toLowerCase().split(/[^a-záéíóúñ]+/).filter(w=>w.length>3))];
+  let kws=((s.vertical||'')+' '+(s.role_title||'')).toLowerCase().split(/[^a-záéíóúñ]+/).filter(w=>w.length>3);
+  kws.forEach(w=>{if(SYN[w])kws=kws.concat(SYN[w]);});
+  kws=[...new Set(kws)];
+  const openRoles=SEARCHES.filter(x=>x.status==='Abierta'&&x.id!==s.id&&x.role_title).map(x=>x.role_title.toLowerCase());
   const out=[];
   DATA.forEach(d=>{
     if(['Contratado','Descartado'].includes(stageOf(d)))return;
     const er=engRankOf(d); if(er<req)return;
-    const e=edv(d.id); let pts=d.fit_score*10; const why=[];
-    if(e.verified_english){pts+=8;why.push('✓ '+e.verified_english+' verificado');}
+    const e=edv(d.id); const ivs=e.interviews||[];
+    if(ivs.some(iv=>iv.type==='Screen de voz'&&iv.result==='No pasó'))return; // reprobó inglés: fuera
+    let pts=d.fit_score*10; const why=[]; const warn=[];
+    if(e.verified_english){pts+=10;why.push('✓ '+e.verified_english+' verificado');}
+    if(ivs.some(iv=>iv.type==='Screen de voz'&&iv.result==='Pasó')){pts+=15;why.push('✓ screen pasado');}
+    if(e.call_score){pts+=(+e.call_score||0)*4;why.push('llamada '+e.call_score+'/5');}
+    if(ivs.some(iv=>iv.result==='No se presentó')){pts-=20;warn.push('no se presentó antes');}
     if(d.phone_experience){pts+=8;why.push('teléfono');}
     const thay=((d.tech_tools||[]).join(' ')).toLowerCase();
     let tp=0;tools.forEach(t=>{if(thay.includes(t)){tp+=15;why.push(t);}});pts+=Math.min(tp,30);
+    let fp=0;
+    tools.forEach(t=>{const fam=TOOLFAM.find(f=>f.some(x=>t.includes(x)||x.includes(t)));
+      if(fam&&!thay.includes(t)){const own=fam.find(x=>thay.includes(x));
+        if(own&&fp<16){fp+=8;why.push(own+' (misma familia)');}}});
+    pts+=fp;
     const rhay=((d.best_fit_roles||[]).join(' ')+' '+(d.industries||[]).join(' ')+' '+(d.headline||'')+' '+(d.strengths||'')).toLowerCase();
-    let kp=0;kws.forEach(w=>{if(rhay.includes(w)){kp+=8;if(why.length<7)why.push(w);}});pts+=Math.min(kp,24);
-    if(e.availability)pts+=4;
-    out.push({d,pts,why,assigned:!!(e.role&&s.role_title&&e.role.toLowerCase()===s.role_title.toLowerCase())});
+    let kp=0;kws.forEach(w=>{if(rhay.includes(w)){kp+=8;if(why.length<8)why.push(w);}});pts+=Math.min(kp,24);
+    if(/(usa?|u\.s\.|ee\.?uu|miami|florida|texas|california|new york|llc|inc)/i.test((d.strengths||'')+' '+(d.english_evidence||'')+' '+(d.industries||[]).join(' '))){pts+=10;why.push('exp. EE.UU.');}
+    if(/inmediat/i.test(e.availability||''))pts+=8;else if(e.availability)pts+=4;
+    if(['Screen de voz','Entrevista','Verificado','Oferta'].includes(stageOf(d)))pts+=6;
+    if(/verificar|different name|otra persona|sin cv|no es un cv|mistyped/i.test(d.concerns||'')){pts-=15;warn.push('⚠ alerta de datos');}
+    const busy=e.role&&openRoles.includes(e.role.toLowerCase())&&!['Nuevo'].includes(stageOf(d));
+    if(busy){pts-=10;warn.push('en otra búsqueda: '+e.role);}
+    out.push({d,pts,why,warn,assigned:!!(e.role&&s.role_title&&e.role.toLowerCase()===s.role_title.toLowerCase())});
   });
   return out.sort((a,b)=>b.pts-a.pts).slice(0,30);
 }
@@ -623,13 +664,13 @@ function renderSearch(){
   let mhtml='';
   if(cur){
     const ms=matchesFor(cur);
-    const MAX=124;
+    const MAX=Math.max(ms.length?ms[0].pts:1,1);
     const rows=ms.map(m=>{
       const e=edv(m.d.id);
       return `<tr class="click" data-id="${m.d.id}">
         <td style="white-space:nowrap"><b>${esc(m.d.name)}</b><br><span class="hl">${esc((m.d.headline||'').slice(0,46))}</span></td>
-        <td><div class="scoreb"><i style="width:${Math.min(100,Math.round(m.pts/MAX*100))}%"></i></div><span class="mono">${m.pts}</span></td>
-        <td><div class="why">${m.why.slice(0,6).map(w=>`<span class="tag">${esc(w)}</span>`).join('')}</div></td>
+        <td><div class="scoreb"><i style="width:${Math.max(4,Math.min(100,Math.round(m.pts/MAX*100)))}%"></i></div><span class="mono">${m.pts}</span></td>
+        <td><div class="why">${m.why.slice(0,6).map(w=>`<span class="tag">${esc(w)}</span>`).join('')}${(m.warn||[]).map(w=>`<span class="tag warn">${esc(w)}</span>`).join('')}</div></td>
         <td>${stageOf(m.d)}${m.assigned?' · <b style="color:var(--teal)">asignado</b>':''}</td>
         <td style="white-space:nowrap">
           ${m.assigned?'':`<button class="btn teal" onclick="event.stopPropagation();assignToSearch(${m.d.id})">Asignar</button>`}
