@@ -18,7 +18,7 @@ h1{font-family:'Instrument Serif',Georgia,serif;font-size:25px;font-weight:400;l
 .sess{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 h1 .dot{color:var(--teal)}
 .sub{color:var(--slate);margin-top:4px;font-size:13.5px}
-.stats{display:flex;gap:0;margin-top:13px;border:1px solid var(--line);background:var(--white);border-radius:3px;overflow:hidden;flex-wrap:wrap}
+.stats{display:flex;gap:0;margin-top:13px;border:1px solid var(--line);background:var(--white);border-radius:6px;overflow:hidden;flex-wrap:wrap}
 .stat{flex:1;min-width:100px;padding:8px 14px;border-right:1px solid var(--line)}
 .stat:last-child{border-right:0}
 .stat b{display:block;font-size:17px;font-weight:500;font-family:'Instrument Serif',Georgia,serif}
@@ -40,7 +40,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--teal)}
 main{padding:22px 0 100px}
 .view{display:none}.view.on{display:block}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:13px}
-.card{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:16px;cursor:pointer;transition:border-color .12s;position:relative}
+.card{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:15px 16px;cursor:pointer;transition:border-color .12s, box-shadow .12s;position:relative;box-shadow:0 1px 2px rgba(10,10,10,.03)}
 .card:hover{border-color:#c3bcac;box-shadow:0 2px 10px rgba(10,10,10,.05)}
 .card .top{display:flex;gap:12px;align-items:flex-start}
 .av{width:50px;height:50px;border-radius:50%;flex:0 0 50px;object-fit:cover;background:var(--sand);display:block}
@@ -70,7 +70,7 @@ main{padding:22px 0 100px}
 .kcol h4{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:#57534E;padding:2px 4px 8px;display:flex;justify-content:space-between}
 .kbody{max-height:62vh;overflow-y:auto;padding-right:2px}
 .kmore{width:100%;font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;padding:7px;border:1px dashed #b6b0a2;background:transparent;color:#57534E;border-radius:3px;cursor:pointer;margin-top:2px}
-.kcard{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:9px 11px;margin-bottom:7px;cursor:pointer;font-size:13px}
+.kcard{background:var(--white);border:1px solid var(--line);border-radius:5px;padding:9px 11px;margin-bottom:7px;cursor:pointer;font-size:13px}
 .kcard:hover{border-color:var(--teal)}
 .kcard .knm{font-weight:500}
 .kcard .ksb{color:var(--slate);font-size:11px;margin-top:2px}
@@ -85,13 +85,13 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 .abar{height:16px;background:var(--sand);border-radius:2px;overflow:hidden}
 .abar i{display:block;height:100%;background:var(--teal)}
 .abar i.mut{background:#a8a29a}
-.panelbox{background:var(--white);border:1px solid var(--line);border-radius:3px;padding:16px 20px;margin-bottom:12px}
+.panelbox{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:16px 20px;margin-bottom:12px;box-shadow:0 1px 2px rgba(10,10,10,.03)}
 .panelbox h3{font-family:'Instrument Serif',Georgia,serif;font-size:18px;font-weight:400;margin-bottom:8px}
 .seclbl{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.13em;text-transform:uppercase;color:var(--slate);margin:0 0 8px}
 /* overlay */
 .ov{position:fixed;inset:0;background:rgba(10,10,10,.45);z-index:100;display:none;overflow-y:auto;padding:36px 18px}
 .ov.show{display:block}
-.panel{max-width:780px;margin:0 auto;background:var(--white);border-radius:4px;padding:32px}
+.panel{max-width:780px;margin:0 auto;background:var(--white);border-radius:8px;padding:30px}
 .panel h2{font-family:'Instrument Serif',Georgia,serif;font-size:27px;font-weight:400}
 .panel .close{float:right;cursor:pointer;font-size:22px;color:var(--slate);border:0;background:none}
 .row{display:grid;grid-template-columns:145px 1fr;gap:10px;padding:9px 0;border-bottom:1px solid var(--line);font-size:13.5px}
@@ -109,7 +109,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 .chkrow{font-size:12.5px;display:flex;gap:8px;align-items:center;cursor:pointer}
 .pov{position:fixed;inset:0;background:rgba(10,10,10,.5);z-index:120;display:none;overflow-y:auto;padding:30px 14px}
 .pov.show{display:block}
-.sheet{max-width:680px;margin:0 auto;background:#fff;padding:46px 50px;border-radius:4px}
+.sheet{max-width:680px;margin:0 auto;background:#fff;padding:46px 50px;border-radius:8px}
 .shead{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--line);padding-bottom:14px}
 .swm{font-weight:500;font-size:20px;letter-spacing:-.02em}
 .sper{display:flex;gap:20px;align-items:center;margin:24px 0 16px}
@@ -124,9 +124,15 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 @media(max-width:640px){.wrap{padding:0 14px}h1{font-size:29px}.grid{grid-template-columns:1fr}.fgrid{grid-template-columns:1fr}.row{grid-template-columns:1fr;gap:2px}}
 #login input{width:100%;font-family:inherit;font-size:14px;padding:10px 12px;border:1px solid var(--line);background:var(--white);color:var(--ink);border-radius:3px;outline:none}
 #login input:focus{border-color:var(--teal)}
+.scard{background:var(--white);border:1px solid var(--line);border-radius:6px;padding:13px 16px;margin-bottom:9px;cursor:pointer;box-shadow:0 1px 2px rgba(10,10,10,.03)}
+.scard.on{border-color:var(--teal)}
+.scard:hover{border-color:#c3bcac}
+.scoreb{height:6px;background:var(--sand);border-radius:3px;overflow:hidden;width:64px;display:inline-block;vertical-align:middle;margin-right:6px}
+.scoreb i{display:block;height:100%;background:var(--teal)}
+.why{display:flex;gap:4px;flex-wrap:wrap;max-width:340px}
 </style></head><body>
 <div id="login" style="position:fixed;inset:0;background:var(--ivory);z-index:200;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px">
-  <div id="loginbox" style="display:none;max-width:360px;width:100%;background:var(--white);border:1px solid var(--line);border-radius:4px;padding:36px">
+  <div id="loginbox" style="display:none;max-width:360px;width:100%;background:var(--white);border:1px solid var(--line);border-radius:8px;padding:36px;box-shadow:0 2px 10px rgba(10,10,10,.05)">
     <div style="font-weight:500;font-size:22px;letter-spacing:-.02em">assistiq<span style="color:var(--teal)">.</span></div>
     <div class="mono" style="margin-top:6px">Talent OS &middot; acceso del equipo</div>
     <form id="loginform" style="margin-top:22px">
@@ -154,6 +160,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
   <div class="stats" id="stats"></div>
   <div class="tabs" id="tabs">
     <div class="tab on" data-v="bench">Bench</div>
+    <div class="tab" data-v="search">B&uacute;squedas</div>
     <div class="tab" data-v="pipeline">Pipeline</div>
     <div class="tab" data-v="hoy">Hoy</div>
     <div class="tab" data-v="meet">Entrevistas</div>
@@ -179,6 +186,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 
 <main><div class="wrap">
   <div class="view on" id="view-bench"><div class="grid" id="grid"></div><div class="empty" id="empty" style="display:none">Sin resultados con esos filtros.</div></div>
+  <div class="view" id="view-search"></div>
   <div class="view" id="view-pipeline"><div class="kb" id="kb"></div></div>
   <div class="view" id="view-hoy"></div>
   <div class="view" id="view-meet" ></div>
@@ -193,7 +201,7 @@ table.tb{width:100%;border-collapse:collapse;background:var(--white);border:1px 
 const SB_URL='https://jbysfyrgesrsgemqervj.supabase.co';
 const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImpieXNmeXJnZXNyc2dlbXFlcnZqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODMzNjA1MTcsImV4cCI6MjA5ODkzNjUxN30._hz_CWETq8rZ6ggxLsACJ5uY-lAsruYTwqrl4D2d-IA';
 const sb=supabase.createClient(SB_URL,SB_KEY);
-let DATA=[]; let EDITS={}; let byId={}; let ME='';
+let DATA=[]; let EDITS={}; let byId={}; let ME=''; let SEARCHES=[]; let curSearchId=null;
 const STAGES=['Nuevo','Contactar','Screen de voz','Entrevista','Verificado','Oferta','Contratado','Descartado'];
 const CHK=[['eng','Inglés verificado en llamada'],['loc','Ubicación confirmada'],['ref','Referencias contactadas'],['avail','Disponibilidad confirmada'],['overlap','Empleos activos aclarados']];
 const ENGRANK={'Native':5,'C2':5,'C1 / Advanced':4,'B2 / Intermediate':3,'B1':2,'Basic':1,'Unknown':0};
@@ -238,7 +246,7 @@ function renderStats(){
   const ivs=allInterviews(); const up=ivs.filter(x=>x.when&&x.when>=todayISO()).length;
   const st=[[DATA.length,'Candidatos'],[ready,'Listos (C1+, fit 4+, tel)'],[inPipe,'En pipeline'],
    [DATA.filter(d=>stageOf(d)==='Verificado').length,'Verificados'],[up,'Entrevistas próximas'],
-   [Object.keys(EDITS).length,'Con avances']];
+   [SEARCHES.filter(x=>x.status==='Abierta').length,'Búsquedas abiertas']];
   document.getElementById('stats').innerHTML=st.map(s=>`<div class="stat"><b>${s[0]}</b><span class="mono">${s[1]}</span></div>`).join('');
 }
 function todayISO(){const t=new Date();return t.toISOString().slice(0,16);}
@@ -297,11 +305,9 @@ function renderBench(){
         ${e.role?`<span class="tag role">${esc(e.role)}</span>`:''}
         <span class="fit f${d.fit_score}">FIT ${d.fit_score}</span>
         <span class="tag eng">${esc(d.english_level)}</span>${ve}
-        <span class="tag">${d.years_experience} a</span>
-        ${d.phone_experience?'<span class="tag">Tel</span>':''}
         ${(d.tech_tools||[]).slice(0,2).map(t=>`<span class="tag">${esc(t)}</span>`).join('')}
       </div>
-      <div class="loc">${esc(d.location||'Ubicación no indicada')}${e.notes?' · <b>nota</b>':''}</div>
+      <div class="loc">${d.years_experience} a · ${esc(d.location||'ubicación no indicada')}${d.phone_experience?' · tel':''}${e.notes?' · <b>nota</b>':''}</div>
     </div>`;}).join('');
 }
 document.getElementById('grid').addEventListener('click',e=>{
@@ -549,9 +555,118 @@ function expCsv(){
   dl('assistiq_bench_completo.csv','﻿'+rows.join('\n'),'text/csv;charset=utf-8');
 }
 
+/* ---------- búsquedas (client matching) ---------- */
+function engRankOf(d){const e=edv(d.id);if(e.verified_english){return ({B1:2,B2:3,C1:4,C2:5})[e.verified_english]||0;}return ENGRANK[d.english_level]||0;}
+function matchesFor(s){
+  const req=s.min_english==='B2'?3:4;
+  const tools=(s.tools||'').split(',').map(t=>t.trim().toLowerCase()).filter(Boolean);
+  const kws=[...new Set(((s.vertical||'')+' '+(s.role_title||'')).toLowerCase().split(/[^a-záéíóúñ]+/).filter(w=>w.length>3))];
+  const out=[];
+  DATA.forEach(d=>{
+    if(['Contratado','Descartado'].includes(stageOf(d)))return;
+    const er=engRankOf(d); if(er<req)return;
+    const e=edv(d.id); let pts=d.fit_score*10; const why=[];
+    if(e.verified_english){pts+=8;why.push('✓ '+e.verified_english+' verificado');}
+    if(d.phone_experience){pts+=8;why.push('teléfono');}
+    const thay=((d.tech_tools||[]).join(' ')).toLowerCase();
+    let tp=0;tools.forEach(t=>{if(thay.includes(t)){tp+=15;why.push(t);}});pts+=Math.min(tp,30);
+    const rhay=((d.best_fit_roles||[]).join(' ')+' '+(d.industries||[]).join(' ')+' '+(d.headline||'')+' '+(d.strengths||'')).toLowerCase();
+    let kp=0;kws.forEach(w=>{if(rhay.includes(w)){kp+=8;if(why.length<7)why.push(w);}});pts+=Math.min(kp,24);
+    if(e.availability)pts+=4;
+    out.push({d,pts,why,assigned:!!(e.role&&s.role_title&&e.role.toLowerCase()===s.role_title.toLowerCase())});
+  });
+  return out.sort((a,b)=>b.pts-a.pts).slice(0,30);
+}
+function toggleSearchForm(){const f=document.getElementById('sform');if(f)f.style.display=f.style.display==='none'?'block':'none';}
+async function saveSearch(){
+  const v=id=>{const el=document.getElementById(id);return el?el.value.trim():'';};
+  const row={client_name:v('s_client'),role_title:v('s_role'),vertical:v('s_vert'),min_english:v('s_eng'),
+    tools:v('s_tools'),hours:v('s_hours'),notes:v('s_notes'),status:'Abierta',created_by:ME};
+  if(!row.client_name&&!row.role_title){const m=document.getElementById('smsg');if(m)m.textContent='Pon al menos cliente o rol';return;}
+  const {data,error}=await sb.from('talent_searches').insert(row).select();
+  const m=document.getElementById('smsg');
+  if(error){if(m)m.textContent='⚠ '+error.message;return;}
+  if(data&&data[0]){SEARCHES.unshift(data[0]);curSearchId=data[0].id;}
+  renderSearch();renderStats();
+}
+async function closeSearch(id,st){
+  const {error}=await sb.from('talent_searches').update({status:st}).eq('id',id);
+  if(!error){const s=SEARCHES.find(x=>x.id===id);if(s)s.status=st;renderSearch();renderStats();}
+}
+async function assignToSearch(cid){
+  const s=SEARCHES.find(x=>x.id===curSearchId);if(!s)return;
+  const e=ed(cid);e.role=s.role_title||s.client_name;
+  if(!e.stage||e.stage==='Nuevo')e.stage='Contactar';
+  await persistEdit(cid,null);
+  renderSearch();renderStats();
+}
+function pickSearch(id){curSearchId=id;renderSearch();}
+function renderSearch(){
+  const open=SEARCHES.filter(x=>x.status==='Abierta'), closed=SEARCHES.filter(x=>x.status!=='Abierta');
+  const chip=t=>t?`<span class="tag">${esc(t)}</span>`:'';
+  const scard=s=>{
+    const n=matchesFor(s).length;
+    return `<div class="scard ${s.id===curSearchId?'on':''}" onclick="pickSearch(${s.id})">
+      <div style="display:flex;align-items:baseline;gap:10px;flex-wrap:wrap">
+        <b style="font-size:15px">${esc(s.client_name||'—')}</b>
+        <span class="hl">${esc(s.role_title||'')}</span>
+        <span style="margin-left:auto" class="mono">${n} candidatos</span>
+      </div>
+      <div class="meta" style="margin-top:8px">${chip(s.vertical)}${chip('Inglés '+(s.min_english||'C1'))}${chip(s.tools)}${chip(s.hours)}
+        ${s.status!=='Abierta'?'<span class="tag" style="background:var(--sand)">Cerrada</span>':''}
+      </div>
+      <div class="loc" style="margin-top:6px">${esc(s.notes||'')}${s.created_by?' · creada por '+esc(s.created_by):''}
+        <a href="javascript:void(0)" onclick="event.stopPropagation();closeSearch(${s.id},'${s.status==='Abierta'?'Cerrada':'Abierta'}')" style="color:var(--teal)">${s.status==='Abierta'?'Cerrar':'Reabrir'}</a>
+      </div>
+    </div>`;};
+  const cur=SEARCHES.find(x=>x.id===curSearchId);
+  let mhtml='';
+  if(cur){
+    const ms=matchesFor(cur);
+    const MAX=124;
+    const rows=ms.map(m=>{
+      const e=edv(m.d.id);
+      return `<tr class="click" data-id="${m.d.id}">
+        <td style="white-space:nowrap"><b>${esc(m.d.name)}</b><br><span class="hl">${esc((m.d.headline||'').slice(0,46))}</span></td>
+        <td><div class="scoreb"><i style="width:${Math.min(100,Math.round(m.pts/MAX*100))}%"></i></div><span class="mono">${m.pts}</span></td>
+        <td><div class="why">${m.why.slice(0,6).map(w=>`<span class="tag">${esc(w)}</span>`).join('')}</div></td>
+        <td>${stageOf(m.d)}${m.assigned?' · <b style="color:var(--teal)">asignado</b>':''}</td>
+        <td style="white-space:nowrap">
+          ${m.assigned?'':`<button class="btn teal" onclick="event.stopPropagation();assignToSearch(${m.d.id})">Asignar</button>`}
+        </td></tr>`;}).join('');
+    mhtml=`<div class="panelbox"><h3>Matches — ${esc(cur.client_name||cur.role_title||'')} (${ms.length})</h3>
+      <div class="hl" style="margin-bottom:10px">Ranking automático: fit del CV, inglés (los verificados pesan más), teléfono, herramientas y palabras del rubro. "Asignar" los pone en <b>Contactar</b> con el rol de esta búsqueda.</div>
+      ${ms.length?`<table class="tb"><tr><th>Candidato</th><th>Score</th><th>Por qué encaja</th><th>Etapa</th><th></th></tr>${rows}</table>`:'<div class="hl">Nadie cumple el inglés mínimo — baja el requisito a B2 o abre screening.</div>'}</div>`;
+  }
+  document.getElementById('view-search').innerHTML=`
+    <div class="panelbox">
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <h3 style="margin:0">Búsquedas de clientes</h3>
+        <button class="btn teal" onclick="toggleSearchForm()">Nueva búsqueda</button>
+      </div>
+      <div id="sform" style="display:none;margin-top:14px" class="editbox">
+        <div class="fgrid">
+          <div><label>Cliente</label><input type="text" id="s_client" placeholder="p.ej. Precision Garage Doors"></div>
+          <div><label>Rol / título</label><input type="text" id="s_role" placeholder="p.ej. Dispatcher bilingüe"></div>
+          <div><label>Vertical / palabras clave</label><input type="text" id="s_vert" placeholder="home services, dispatch, roofing"></div>
+          <div><label>Inglés mínimo</label><select id="s_eng"><option>C1</option><option>B2</option></select></div>
+          <div><label>Herramientas (separadas por coma)</label><input type="text" id="s_tools" placeholder="Workiz, Housecall Pro, RingCentral"></div>
+          <div><label>Horario</label><select id="s_hours"><option>Full-time</option><option>Part-time</option></select></div>
+        </div>
+        <div class="f1c"><label>Notas del cliente</label><textarea id="s_notes"></textarea></div>
+        <div style="margin-top:10px"><button class="btn teal" onclick="saveSearch()">Guardar búsqueda</button><span class="msg" id="smsg"></span></div>
+      </div>
+    </div>
+    ${open.map(scard).join('')||'<div class="panelbox"><div class="hl">Sin búsquedas abiertas. Crea la primera con el requerimiento del cliente y el sistema te rankea el bench.</div></div>'}
+    ${mhtml}
+    ${closed.length?'<div class="seclbl" style="margin:16px 0 8px">Cerradas</div>'+closed.map(scard).join(''):''}`;
+  document.getElementById('view-search').querySelectorAll('tr.click').forEach(tr=>tr.addEventListener('click',()=>openDetail(+tr.dataset.id)));
+}
+
 /* ---------- tabs & wiring ---------- */
 function renderView(){
   if(curView==='bench')renderBench();
+  else if(curView==='search')renderSearch();
   else if(curView==='pipeline')renderPipeline();
   else if(curView==='hoy')renderHoy();
   else if(curView==='meet')renderMeet();
@@ -576,12 +691,15 @@ document.getElementById('reset').addEventListener('click',()=>{
 });
 /* ---------- auth + boot ---------- */
 async function fetchAll(){
-  const [c,e2,iv]=await Promise.all([
+  const [c,e2,iv,sr]=await Promise.all([
     sb.from('talent_candidates').select('data').order('id'),
     sb.from('talent_edits').select('*'),
-    sb.from('talent_interviews').select('*').order('id')
+    sb.from('talent_interviews').select('*').order('id'),
+    sb.from('talent_searches').select('*').order('id',{ascending:false})
   ]);
-  if(c.error)throw c.error; if(e2.error)throw e2.error; if(iv.error)throw iv.error;
+  if(c.error)throw c.error; if(e2.error)throw e2.error; if(iv.error)throw iv.error; if(sr.error)throw sr.error;
+  SEARCHES=sr.data||[];
+  if(curSearchId==null){const op=SEARCHES.find(x=>x.status==='Abierta');if(op)curSearchId=op.id;}
   DATA=(c.data||[]).map(r=>r.data);
   byId=Object.fromEntries(DATA.map(d=>[d.id,d]));
   EDITS={};
